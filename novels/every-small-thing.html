@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Every Small Thing — The Shelf</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Cinzel:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    [data-theme="light"] {
+      --bg: #f7f3ed; --surface: #eee8dc; --ink: #1a1612; --prose-ink: #2a2218;
+      --muted: #7a6f62; --rule: #ddd6c8; --accent: #5c3d2e; --tag-bg: #e4ddd0;
+      --nav-bg: rgba(247,243,237,0.94); --hero-bg: #111009; --hero-ink: #e8e0d0;
+    }
+    [data-theme="dark"] {
+      --bg: #0f0e0a; --surface: #1a1813; --ink: #e4ddd0; --prose-ink: #cfc8bb;
+      --muted: #6e6455; --rule: #282318; --accent: #bf8f55; --tag-bg: #201e18;
+      --nav-bg: rgba(15,14,10,0.94); --hero-bg: #080705; --hero-ink: #e8e0d0;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg); color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 52px; background: var(--nav-bg);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px; transition: background 0.3s, border-color 0.3s;
+    }
+    .nav-back {
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--muted); text-decoration: none;
+      display: flex; align-items: center; gap: 7px; transition: color 0.15s;
+    }
+    .nav-back::before { content: '←'; font-family: Georgia, serif; font-size: 13px; letter-spacing: 0; }
+    .nav-back:hover { color: var(--accent); }
+    .nav-center {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted); white-space: nowrap; pointer-events: none;
+    }
+    .nav-right { display: flex; align-items: center; gap: 4px; }
+    .icon-btn {
+      width: 34px; height: 34px; border: none; background: none; border-radius: 7px;
+      cursor: pointer; color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .icon-btn:hover { background: var(--surface); color: var(--ink); }
+    .icon-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+
+    .reading-bar { position: fixed; top: 52px; left: 0; right: 0; z-index: 99; height: 2px; }
+    .reading-bar-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.1s linear; }
+
+    .overlay {
+      position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.25);
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .settings-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
+      width: 280px; background: var(--bg); border-left: 1px solid var(--rule);
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), background 0.3s, border-color 0.3s;
+    }
+    .settings-drawer.open { transform: translateX(0); }
+    .drawer-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px; border-bottom: 1px solid var(--rule);
+    }
+    .drawer-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); }
+    .drawer-body { padding: 28px 20px; display: flex; flex-direction: column; gap: 28px; }
+    .setting-row > .s-label { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 14px; }
+    .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .theme-opt {
+      border: 1px solid var(--rule); border-radius: 8px; padding: 12px 10px 10px;
+      cursor: pointer; background: var(--surface);
+      display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s;
+    }
+    .theme-opt:hover { border-color: var(--muted); }
+    .theme-opt.active { border-color: var(--accent); }
+    .swatch { width: 100%; height: 30px; border-radius: 4px; border: 1px solid var(--rule); }
+    .swatch.light { background: #f7f3ed; }
+    .swatch.dark  { background: #0f0e0a; }
+    .theme-opt span { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); text-align: center; }
+    .font-row { display: flex; gap: 8px; }
+    .font-sz-btn {
+      flex: 1; border: 1px solid var(--rule); background: var(--surface);
+      border-radius: 7px; padding: 10px; cursor: pointer;
+      font-family: 'EB Garamond', serif; color: var(--ink);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; transition: border-color 0.15s, background 0.15s;
+    }
+    .font-sz-btn:hover { border-color: var(--accent); background: var(--tag-bg); }
+
+    .hero {
+      background: var(--hero-bg); padding: 100px 28px 64px;
+      text-align: center; position: relative; overflow: hidden;
+      transition: background 0.3s;
+    }
+    .hero::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(200,185,154,0.2), transparent);
+    }
+    .hero-eye { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.4em; text-transform: uppercase; color: rgba(200,185,154,0.5); margin-bottom: 18px; display: block; }
+    .hero-title { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: clamp(36px, 6vw, 60px); line-height: 1.06; color: var(--hero-ink); margin-bottom: 12px; }
+    .hero-sub { font-family: 'EB Garamond', serif; font-style: italic; font-size: 17px; color: rgba(200,185,154,0.5); }
+
+    .layout {
+      display: grid; grid-template-columns: 200px 1fr;
+      max-width: 1000px; margin: 0 auto; padding: 0 28px;
+      gap: 64px; align-items: start;
+    }
+    .toc { position: sticky; top: 72px; padding: 48px 0; }
+    .toc-lbl { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 20px; }
+    .toc ul { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+    .toc a {
+      font-family: 'EB Garamond', serif; font-size: 14.5px; color: var(--muted);
+      text-decoration: none; padding: 7px 10px; display: block;
+      border-left: 1px solid transparent; transition: color 0.2s, border-color 0.2s; line-height: 1.4;
+    }
+    .toc a:hover, .toc a.active { color: var(--accent); border-left-color: var(--accent); }
+
+    .reading { padding: 56px 0 100px; }
+    .chapter { margin-bottom: 72px; }
+    .ch-head { margin-bottom: 40px; padding-bottom: 28px; border-bottom: 1px solid var(--rule); }
+    .ch-num { font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 10px; }
+    .ch-title { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 34px; line-height: 1.12; color: var(--ink); }
+    .ch-epigraph { margin-top: 18px; font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 17px; color: var(--muted); padding-left: 20px; border-left: 2px solid var(--rule); line-height: 1.6; }
+
+    .prose {
+      --fs: 20px; font-family: 'EB Garamond', Georgia, serif;
+      font-size: var(--fs); line-height: 1.86; color: var(--prose-ink);
+    }
+    .prose p { margin-bottom: 1.45em; text-align: justify; hyphens: auto; -webkit-hyphens: auto; }
+    .prose p + p { text-indent: 1.4em; }
+    .prose p:first-of-type { text-indent: 0; }
+    .prose p:first-of-type::first-letter {
+      font-family: 'Cormorant Garamond', serif; font-size: 4.4em; font-weight: 300;
+      line-height: 0.8; float: left; margin-right: 0.08em; margin-top: 0.06em; color: var(--accent);
+    }
+    .prose em { font-style: italic; }
+
+    .scene-break { text-align: center; color: var(--muted); letter-spacing: 0.5em; font-size: 13px; margin: 2.2em 0; user-select: none; }
+    .centred-quote { text-align: center; text-indent: 0 !important; font-style: italic; font-size: 1.08em; color: var(--accent); padding: 10px 0; }
+    .ch-end { text-align: center; color: var(--muted); font-family: 'Cormorant Garamond', serif; font-size: 18px; margin-top: 48px; opacity: 0.5; }
+
+    .coming { margin-top: 64px; padding: 36px 32px; background: var(--surface); border: 1px solid var(--rule); text-align: center; transition: background 0.3s, border-color 0.3s; }
+    .coming-lbl { font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 12px; }
+    .coming-title { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 24px; color: var(--ink); }
+
+    footer { text-align: center; padding: 28px; font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--rule); border-top: 1px solid var(--rule); }
+
+    @media (max-width: 720px) {
+      nav { padding: 0 18px; }
+      .nav-center { display: none; }
+      .hero { padding: 88px 20px 52px; }
+      .layout { grid-template-columns: 1fr; padding: 0 18px; gap: 0; }
+      .toc { display: none; }
+      .reading { padding: 36px 0 72px; }
+      .settings-drawer { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-back" href="../index.html">Library</a>
+  <span class="nav-center">Every Small Thing</span>
+  <div class="nav-right">
+    <button class="icon-btn" id="settings-btn" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="reading-bar"><div class="reading-bar-fill" id="reading-bar-fill"></div></div>
+
+<div class="overlay" id="overlay"></div>
+<div class="settings-drawer" id="drawer">
+  <div class="drawer-head">
+    <span class="drawer-label">Settings</span>
+    <button class="icon-btn" id="drawer-close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div class="setting-row">
+      <span class="s-label">Theme</span>
+      <div class="theme-grid">
+        <div class="theme-opt active" data-t="light"><div class="swatch light"></div><span>Light</span></div>
+        <div class="theme-opt" data-t="dark"><div class="swatch dark"></div><span>Dark</span></div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span class="s-label">Text Size</span>
+      <div class="font-row">
+        <button class="font-sz-btn" id="font-down">A−</button>
+        <button class="font-sz-btn" id="font-up">A+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="hero">
+  <span class="hero-eye">Contemporary · Slice of Life · Found Family</span>
+  <h1 class="hero-title">Every Small Thing</h1>
+  <p class="hero-sub">A Story of Wren</p>
+</div>
+
+<div class="layout">
+  <aside class="toc">
+    <span class="toc-lbl">Contents</span>
+    <ul>
+      <li><a href="#ch1" class="active">I — The City at First Light</a></li>
+      <li><a href="#ch2">II — Maid Café</a></li>
+      <li><a href="#ch3">III — The Shape of Kindness</a></li>
+      <li><a href="#ch4">IV — The Convenience Store</a></li>
+      <li><a href="#ch5">V — Every Small Thing</a></li>
+    </ul>
+  </aside>
+
+  <article class="reading">
+
+    <!-- Chapter 1 -->
+    <section class="chapter" id="ch1">
+      <div class="ch-head">
+        <span class="ch-num">Chapter I</span>
+        <h2 class="ch-title">The City at First Light</h2>
+        <p class="ch-epigraph">"To be born knowing nothing, and to find that knowing nothing<br>is, in certain lights, a remarkable kind of freedom."</p>
+      </div>
+      <div class="prose">
+        <p>The first thing Wren knew was the smell of exhaust fumes and coffee.</p>
+        <p>The second thing was the pavement — grey and cold beneath both palms — and the distant wail of a siren that faded before she could decide whether it was coming or going. She sat up slowly, the world assembling itself around her in pieces: the canyon of glass and concrete stretching in both directions, the overcast sky pressed flat above it, the river of people flowing past on the wide sidewalk without sparing her a glance.</p>
+        <p>She had ears. That was the third thing she noticed. Not ordinary ears, shaped flat against the head the way human ears were, but tall, soft, slightly pointed ones that caught the wind from a passing delivery truck and swivelled instinctively towards the sound. She reached up and touched one. It flicked away from her fingers, then relaxed. Behind her, a tail — pale grey, long, currently curled against the pavement like a question mark — swept once and was still.</p>
+        <p>She had no memory of anything before this moment.</p>
+        <p>No name. No address. No face in her mind to call mother or father or friend. There was only this: the city moving around her, indifferent and enormous, and the faint, improbable feeling that she was exactly where she was supposed to be.</p>
+        <p>Wren stood up on unsteady legs, straightened the oversized pastel hoodie she was wearing — baggy shorts, white knee socks, shoes she had no memory of putting on — and looked down the street in both directions. She could hear the hiss of milk steaming somewhere nearby, the low percussion of jazz drifting from a speaker. A café, then. She followed the smell the way a compass follows north.</p>
+        <p>She had been alive for approximately four minutes, and she was already hungry.</p>
+      </div>
+    </section>
+
+    <!-- Chapter 2 -->
+    <section class="chapter" id="ch2">
+      <div class="ch-head">
+        <span class="ch-num">Chapter II</span>
+        <h2 class="ch-title">Maid Café</h2>
+        <p class="ch-epigraph">"The bravest thing is not to have no fear.<br>It is to have everything to fear, and to walk through the door anyway."</p>
+      </div>
+      <div class="prose">
+        <p>The café was called Chez Rose, according to the painted script above the door, and it was the kind of place that had clearly decided, once and for all, what it wanted to be and had committed to it completely. Red vinyl booths. Chrome fixtures worn soft at the edges. Framed botanical prints beside a menu written in chalk. And the staff, moving between tables with practiced ease, wore black and white maid uniforms with small ribbon details at the cuffs.</p>
+        <p>Wren stood in the doorway for a moment, taking it all in. The warmth hit her first — real warmth, the kind that settles into the shoulders and stays. Then the smell: butter and espresso and something sweet underneath, vanilla or caramel, she couldn't be certain.</p>
+        <p>A small blonde server noticed her and approached with a professional smile. "Table for one?"</p>
+        <p>Wren's ears, which had been pressed politely flat in a futile effort to look unremarkable, twitched at the sound. She cleared her throat. "Actually — I was wondering if you needed anyone to work here."</p>
+        <p>The server's smile shifted into something more genuine, touched with surprise. "One moment." She disappeared through a door marked Private.</p>
+        <p>The woman who emerged a minute later was not what Wren had expected. She was perhaps forty, with the composure of someone who had decided long ago that composure was more useful than anything else life might offer. Her uniform was more elaborate than the others', fitted precisely at the waist, and her dark hair was pinned up with the kind of careful architecture that suggested it had taken exactly the right amount of time. She studied Wren the way a jeweller studies something brought in for appraisal — not unkindly, just thoroughly.</p>
+        <p>"I'm Rosalind," she said. "I own this place. And you are?"</p>
+        <p>Wren opened her mouth. Closed it. The honest answer was <em>I have no idea</em>, which was not, she sensed, the ideal opening for a job interview.</p>
+        <p>"Wren," she said, because it had arrived in her mind the moment she needed it, the way the word for <em>cold</em> had arrived when she touched the pavement. Perhaps she had always been called that. Perhaps she had named herself just now. Either way, it fit.</p>
+        <p>She told Rosalind the rest of it plainly, because she had no other way to tell it: she had woken on the street that morning with no memory, no family, no belongings beyond what she was wearing. She needed work, and then she would need somewhere to sleep, and she was prepared to start at the very bottom of whatever hierarchy this café operated on.</p>
+        <p>Rosalind listened to all of this without interrupting. When Wren finished, there was a brief silence — the kind that precedes either rejection or something better.</p>
+        <p>"Dishes and tables," Rosalind said at last. "To start. If you're quick and careful, we'll talk about the floor." She extended a hand. "Welcome to Chez Rose, Wren."</p>
+        <p>Wren shook it, feeling the warmth of the grip travel all the way up her arm.</p>
+
+        <div class="scene-break">· · ·</div>
+
+        <p>She was introduced to Pierre — a tall Frenchman with the air of a conductor who had somehow ended up in a kitchen — and Mimi, the small blonde server, who handed Wren an apron and a pair of rubber gloves and gave the tip of one of her ears a single gentle pat as though she couldn't quite help it.</p>
+        <p>Wren made a small sound without meaning to — something between a purr and a sigh — and pressed her face briefly against Mimi's hand before remembering herself and stepping back, ears burning with embarrassment.</p>
+        <p>Mimi giggled, cheeks flushed pink. "You are, without question, the cutest thing I have ever seen."</p>
+        <p>"That was an accident," Wren said, which made Mimi laugh harder.</p>
+        <p>She washed dishes for two hours before anything interesting happened. Then a voice rose from the dining room — male, loud, slurred with drink — and Mimi appeared at the kitchen pass-through with the face of someone delivering bad news.</p>
+        <p>"There's a situation," she said quietly to Rosalind, who had been reviewing a ledger at the counter. "A customer. He's frightening people."</p>
+        <p>Wren set down the pot she was scrubbing and dried her hands.</p>
+        <p>She was not certain what possessed her. She had been alive for less than half a day and had no particular reason to believe herself capable of handling anything. But she walked out through the kitchen door anyway, found the man without difficulty — he was large and red-faced and swaying in his seat, his voice carrying over the soft jazz like a rock through a window — and crossed the room to stand in front of him.</p>
+        <p>He turned on her before she could speak. His eyes were bloodshot and wet with something worse than anger. Up close, beneath the bluster, she could see what it actually was: a grief so large it had nowhere left to go.</p>
+        <p>She put her arms around him.</p>
+        <p>He went very still.</p>
+        <p>The restaurant fell silent. Then, slowly, his shoulders began to shake, and he gripped the back of her hoodie with both enormous hands, and the sound that came out of him was not what anyone had been expecting — not aggression, just a long, shuddering exhale, like a house settling after a storm.</p>
+        <p>When he finally straightened up, red-eyed and bewildered, Wren handed him a napkin from the nearest table and waited.</p>
+        <p>"I don't know why I did that," she told Rosalind afterwards, honestly.</p>
+        <p>Rosalind looked at her for a long moment. "I think," she said slowly, "that you knew exactly why."</p>
+      </div>
+    </section>
+
+    <!-- Chapter 3 -->
+    <section class="chapter" id="ch3">
+      <div class="ch-head">
+        <span class="ch-num">Chapter III</span>
+        <h2 class="ch-title">The Shape of Kindness</h2>
+        <p class="ch-epigraph">"Home is not a place. It is the particular way<br>someone says your name when they are not afraid you will leave."</p>
+      </div>
+      <div class="prose">
+        <p>By midday, Wren had been promoted to the floor.</p>
+        <p>It happened in the way that the best things tend to happen — quietly, without ceremony, without her quite noticing the moment it began. She had carried out a plate of food and introduced herself to the first table she served, and then the next, and then the next, moving through the dining room with a natural ease that she did not know she possessed until she was already doing it. Her tail, she discovered, was apparently charming to most people, who followed it with their eyes the way children follow colourful things. Her ears caught the low rumble of a customer's dissatisfied tone three tables away before he had raised his hand.</p>
+        <p>She was, without quite intending to be, good at this.</p>
+        <p>The afternoon brought a man named Mr. Blackwood — broad-shouldered, gruff, a regular whom the other staff approached with the wariness of people who had learned to expect turbulence. He sat at the bar, ordered a burger medium rare, and was rude about the wait. Wren brought his food without flinching.</p>
+        <p>"Purrfect order, sir," she said, setting the plate before him.</p>
+        <p>He looked up sharply, as if expecting sarcasm. Found none. Looked at the plate. Took a bite.</p>
+        <p>"Damn," he said quietly, to no one in particular. Then, to Wren: "You're new."</p>
+        <p>"Since this morning," she agreed.</p>
+        <p>He studied her. The ears. The tail, which had curled around her ankle in a habit she was developing when she stood still for too long. His expression was difficult to read — something between curiosity and a kind of tired, reluctant warmth that he clearly hadn't planned on feeling.</p>
+        <p>"Well," he said, and took another bite. "Don't let this place chew you up."</p>
+        <p>"I won't," Wren said, and meant it.</p>
+
+        <div class="scene-break">· · ·</div>
+
+        <p>Rosalind called her into the office at the end of the day. Wren stood before the mahogany desk with her hands loosely at her sides and waited.</p>
+        <p>"You've been extraordinary today," Rosalind said. "And I say that without any exaggeration at all. Which is why I want to offer you something, and I want you to understand that you are entirely free to say no."</p>
+        <p>She offered Wren a room. Her spare bedroom — small, simply furnished, with a cat tree in the corner that had belonged to a previous resident and had never quite found a reason to be removed. She could live there while she found her footing. There was no obligation, no timeline, no conditions. Rosalind would expect nothing from it except that Wren be honest with her.</p>
+        <p>"I don't know why you're being so kind to me," Wren said.</p>
+        <p>Rosalind was quiet for a moment. "You reminded me today that small acts — hugging a stranger, bringing someone their food with warmth — can change the entire weight of a person's day. That is not nothing. That is, in fact, rather a lot." She folded her hands on the desk. "I would like to know what you become. I think it will be interesting to watch."</p>
+        <p>Wren was not sure what her face did in the seconds that followed. Whatever it was, it made Rosalind stand and come around the desk and open her arms, and Wren walked into them without hesitating, pressing her face against the shoulder of the woman's crisp uniform, feeling the arms close around her and hold on.</p>
+        <p>She transformed then — not deliberately, just completely: one moment a slight girl in a borrowed apron, the next a tiny kitten tucked against Rosalind's chest, round-eyed and trembling slightly with something too big for her small body to contain.</p>
+        <p>Rosalind cradled her with both hands, and laughed softly, and said nothing else.</p>
+        <p>On the drive home, tucked warm inside the leather bag on the passenger seat, Wren thought: <em>I am three hours old, and I already know what I want my life to be.</em></p>
+        <p>She fell asleep before they reached the house.</p>
+      </div>
+    </section>
+
+    <!-- Chapter 4 -->
+    <section class="chapter" id="ch4">
+      <div class="ch-head">
+        <span class="ch-num">Chapter IV</span>
+        <h2 class="ch-title">The Convenience Store</h2>
+        <p class="ch-epigraph">"There will always be people who mistake difference for threat.<br>There will also, if you are lucky, always be someone standing at the end of the aisle."</p>
+      </div>
+      <div class="prose">
+        <p>On her third day, Wren went out alone for the first time.</p>
+        <p>It was a small errand — chocolate, from the convenience store two blocks from Rosalind's house. The evening air was cool and smelled of cut grass from somewhere she couldn't place. She walked with her hands in her pockets, tail swishing contentedly behind her, thinking about nothing in particular. She was, she realized, happy. Not in some grand or overwhelming way, but in the ordinary way — the way of warm socks and a job to go back to tomorrow and a woman who had left the front light on.</p>
+        <p>The store was bright inside, fluorescent and close, its shelves crowded with the cheerful clutter of things people needed at inconvenient hours. Wren found the chocolate section quickly. She was reaching for a particular bar — dark, with sea salt, which she had tried yesterday and decided was important to her sense of self — when she heard them behind her.</p>
+        <p>There were three of them. Teenagers, she thought, though later she would not be able to say how she had known their age so precisely. Their voices arrived before they did, sharp and carrying in the narrow aisle, and then they were there, and the ringleader's gaze locked onto her ears and the sneer arrived almost before he'd had time to think it.</p>
+        <p>They called her things she did not have the context to fully absorb. They questioned whether her features were real. The heavyset one grabbed her shoulder and shoved her back into the shelf. Cans struck the floor with a sound like small accidents. The ringleader's fist connected with her jaw and she went down, and for a long moment she was simply on the floor, her cheek cold against the linoleum, listening to them above her, and the world was very small and very loud.</p>
+        <p>Then she was a kitten.</p>
+        <p>She had not decided to transform. Her body made the choice before her mind could, contracting away from the violence, finding a shape that was smaller and harder to hurt. She pressed herself against the bottom shelf and hissed, which was not a strategy so much as a last reserve of dignity.</p>
+        <p>Then a voice came from the front of the store, enormous and absolute: "HEY."</p>
+
+        <div class="scene-break">· · ·</div>
+
+        <p>The store owner's name was Demyan. He was fifty-three, with calloused hands and the particular build of a man who had spent thirty years lifting boxes without complaint. He cleared the aisle in four strides, put himself between Wren and the teenagers without pausing to consider whether it was his business, and told them to leave in a tone that left no room for negotiation. Then he crouched down and waited for Wren to come out from under the shelf.</p>
+        <p>She transformed back slowly, sitting on the floor with her knees pulled up, the chocolate bar still somehow in her hand. Her jaw ached. There were tears on her face that she hadn't noticed until they were already there.</p>
+        <p>"I'm sorry," she said. "About the mess."</p>
+        <p>Demyan looked at the scattered cans, then at her. "Don't apologize to me for that." He handed her an ice pack from behind the counter — the kind kept for exactly these sorts of eventualities, which said something about the world he had been watching from this store for thirty years. "Are you hurt anywhere else?"</p>
+        <p>"My jaw."</p>
+        <p>"Anything else?"</p>
+        <p>She thought about it. "My feelings," she said, and was surprised by how matter-of-fact it came out.</p>
+        <p>Demyan's expression didn't change, but something in it softened. "Those count," he said. "Sit here. I'm calling someone."</p>
+        <p>He had already called the police — the footage from his cameras was clear, he said, and the boys would answer for it. He called Rosalind next, from the number on Wren's emergency contact card, which Rosalind had written out on Wren's first morning and pressed into her pocket with the firm instruction that she was to carry it always. He made Wren a cup of tea from the kettle he kept behind the counter, and he rang up her chocolate bar and put it in a paper bag and refused to let her pay.</p>
+        <p>When Rosalind arrived — in less than seven minutes, which suggested she had been moving quickly — Wren stood up and walked straight to her and buried her face against her shoulder, and Rosalind held on with both arms and didn't say anything for a long time, which was exactly right.</p>
+        <p>Before they left, Wren turned back to Demyan.</p>
+        <p>"Thank you," she said. "For not just watching."</p>
+        <p>He shrugged in the way of people who do not know how to accept being called good. "You're welcome here whenever," he said. "Any time." A pause. "The sea salt dark is the best one, by the way. You've got taste."</p>
+        <p>Wren smiled — her first real smile of the evening — and tucked the paper bag under her arm and followed Rosalind to the car.</p>
+      </div>
+    </section>
+
+    <!-- Chapter 5 — the ending -->
+    <section class="chapter" id="ch5">
+      <div class="ch-head">
+        <span class="ch-num">Chapter V</span>
+        <h2 class="ch-title">Every Small Thing</h2>
+        <p class="ch-epigraph">"You did not arrive too late. You arrived exactly when the world<br>was ready to become yours."</p>
+      </div>
+      <div class="prose">
+        <p>On the morning of her seventh day, Wren woke before dawn.</p>
+        <p>She lay still for a while in the pale dark of the bedroom, listening to the house. The soft percussion of rain against the window. Rosalind's tabby cat, Sable, a warm weight at the foot of the bed, breathing in long, satisfied pulls. Somewhere below, the faint tick of the kitchen clock. The house breathing around her, the way houses do when they have been lived in long enough and are at peace.</p>
+        <p>One week. She had been alive for one week.</p>
+        <p>She went downstairs quietly, made two cups of tea the way Rosalind had shown her — loose leaf, three minutes, a little milk — and set one on the counter for when Rosalind woke, and took hers to the window seat and curled up with Sable pressed against her hip and watched the street slowly fill with grey morning light.</p>
+        <p>She thought about everything she knew, which was both less and more than she'd expected. She knew the weight of a stack of clean plates and the sound a conversation makes when it's about to need her attention and the particular satisfaction of returning a table to order, every cup in its place. She knew that Mr. Blackwood took his coffee black and his criticism backwards — when he was hardest on a thing, it usually meant he was protecting himself from liking it too much. She knew that Mimi laughed with her whole body and that Pierre's sternness was entirely performance. She knew that Demyan kept tea behind the counter and emergency ice packs by the register and had never once, in thirty years, just watched.</p>
+        <p>She knew what her name was and what her hands looked like and that when she was very moved she became a kitten without deciding to, which was inconvenient but also, she had decided, rather honest.</p>
+
+        <div class="scene-break">· · ·</div>
+
+        <p>That evening, Rosalind asked Wren to come to the office after closing. Wren sat down across the mahogany desk with the ease of someone who had done it many times, which was strange given that she hadn't — she had been here for one week — but felt, in some bone-deep way, completely accurate.</p>
+        <p>Rosalind set a small envelope on the desk between them.</p>
+        <p>"I've been thinking about how to say this," she began. "I'm going to say it plainly, because I think that's the way you prefer things."</p>
+        <p>Wren waited.</p>
+        <p>"You came through my door seven days ago with nothing," Rosalind said. "No name, no past, no one to call. And in seven days you have become — without effort, without performance — one of the kindest people I have ever met. You hug strangers who need it. You bring food with warmth. You remember that people are more than their orders." She paused. "I don't want you to be my employee who happens to live in my spare room. I want to adopt you. Properly, legally, completely. If you want that. If you're ready for it to mean what it means."</p>
+        <p>Wren looked at the envelope. Her name was written on it in Rosalind's handwriting — just <em>Wren</em>, for now, pending whatever came after.</p>
+        <p>"What does it mean?" she asked, though she already knew.</p>
+        <p>"It means you have someone," Rosalind said. "No matter what. It means this is your home in the way that can't be taken back. It means—" her voice, usually so precise, shifted slightly "—that I am keeping you, and that I intend to be insufferably proud of everything you do for the rest of your life."</p>
+        <p>Wren looked down at her hands.</p>
+        <p>She had been born on a street corner with nothing — no history, no people, no map of what she was supposed to become. And in seven days she had a name and a job and a place in a household with a cat who had chosen her sleeping spot and a store owner who remembered which chocolate she preferred and a café full of people who waved at her from across the room and a gruff regular who would probably never say outright that she was his favourite but showed up three days out of five and always asked for her specifically.</p>
+        <p>It was not nothing. It was not even close to nothing. It was, in fact, more than she had known to ask for.</p>
+        <p>She reached out and picked up the envelope.</p>
+        <p>Her tail, which she had never once in seven days managed to keep entirely still, curled twice around her wrist like a held hand.</p>
+        <p>"Yes," she said.</p>
+
+        <div class="scene-break">· · ·</div>
+
+        <p>Much later, she would try to explain to people why that moment had undone her so completely. It was not the grand gesture of it — there was no grand gesture. There was only a small envelope on a mahogany desk, and a woman across from her who had decided, without being asked, that Wren was worth keeping. And somehow that was the whole of it. That someone had looked at a creature who had woken on a pavement seven days ago with nothing but a name she had invented on the spot, and had decided: <em>yes, this one, I'll keep this one, I choose this.</em></p>
+        <p>She became a kitten again. She couldn't help it.</p>
+        <p>Rosalind picked her up, laughing and wiping her eyes at the same time, and pressed her face against the top of Wren's small head, and the sound Wren made was not a word but it meant everything she needed to say.</p>
+        <p>Sable, asleep on the office chair, opened one amber eye, regarded them both with the benign approval of a creature who had seen stranger things, and went back to sleep.</p>
+        <p>Outside, the city moved the way cities do — enormous, indifferent, carrying its millions of lives forward into the night. But inside this small office, in the back of a maid café that had decided long ago what it wanted to be, something smaller and more permanent was happening.</p>
+        <p>A girl who had arrived with nothing was going home.</p>
+        <div class="ch-end">✦</div>
+      </div>
+    </section>
+
+  </article>
+</div>
+
+<footer>The Shelf &nbsp;·&nbsp; A Private Library</footer>
+
+<script>
+  const root = document.documentElement;
+  const applyTheme = t => {
+    root.setAttribute('data-theme', t);
+    localStorage.setItem('shelf-theme', t);
+    document.querySelectorAll('.theme-opt').forEach(o => o.classList.toggle('active', o.dataset.t === t));
+  };
+  applyTheme(localStorage.getItem('shelf-theme') || 'light');
+  document.querySelectorAll('.theme-opt').forEach(o => o.addEventListener('click', () => applyTheme(o.dataset.t)));
+
+  const drawer  = document.getElementById('drawer');
+  const overlay = document.getElementById('overlay');
+  const openD   = () => { drawer.classList.add('open');  overlay.classList.add('open'); };
+  const closeD  = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
+  document.getElementById('settings-btn').addEventListener('click', openD);
+  document.getElementById('drawer-close').addEventListener('click', closeD);
+  overlay.addEventListener('click', closeD);
+
+  const allProse = document.querySelectorAll('.prose');
+  let fs = parseFloat(localStorage.getItem('shelf-fontsize') || '20');
+  const setFs = v => {
+    fs = Math.min(28, Math.max(16, v));
+    allProse.forEach(p => p.style.setProperty('--fs', fs + 'px'));
+    localStorage.setItem('shelf-fontsize', fs);
+  };
+  setFs(fs);
+  document.getElementById('font-up').addEventListener('click', () => setFs(fs + 1.5));
+  document.getElementById('font-down').addEventListener('click', () => setFs(fs - 1.5));
+
+  const fill = document.getElementById('reading-bar-fill');
+  window.addEventListener('scroll', () => {
+    const pct = Math.min(100, (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+    fill.style.width = pct + '%';
+    const prog = JSON.parse(localStorage.getItem('shelf-progress') || '{}');
+    prog['novels/every-small-thing.html'] = Math.round(pct);
+    localStorage.setItem('shelf-progress', JSON.stringify(prog));
+  }, { passive: true });
+
+  const chapters = document.querySelectorAll('.chapter');
+  const tocLinks = document.querySelectorAll('.toc a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-25% 0px -65% 0px' });
+  chapters.forEach(c => obs.observe(c));
+</script>
+
+</body>
+</html>
