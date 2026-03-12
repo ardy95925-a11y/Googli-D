@@ -347,8 +347,8 @@
     <span class="intro-eyebrow">Your Library</span>
     <h1 class="intro-title">Stories worth<br><em>reading.</em></h1>
     <div class="stats">
-      <div><span class="stat-num">4</span><span class="stat-lbl">Novels</span></div>
-      <div><span class="stat-num">34</span><span class="stat-lbl">Chapters</span></div>
+      <div><span class="stat-num">5</span><span class="stat-lbl">Novels</span></div>
+      <div><span class="stat-num">43</span><span class="stat-lbl">Chapters</span></div>
     </div>
   </div>
 
@@ -357,9 +357,29 @@
     <button class="chip" data-filter="slice-of-life">Slice of Life</button>
     <button class="chip" data-filter="dark-fantasy">Dark Fantasy</button>
     <button class="chip" data-filter="horror">Horror</button>
+    <button class="chip" data-filter="comedy">Comedy</button>
   </div>
 
   <div class="card-list">
+
+    <a class="card" href="novels/the-most-forgettable-man.html" data-genres="comedy supernatural">
+      <div class="card-thumb">
+        <span class="thumb-text">The<br/>Most<br/>Forg.</span>
+      </div>
+      <div class="card-info">
+        <div class="card-tags">
+          <span class="ctag">Comedy</span>
+          <span class="ctag">Cosmic Horror</span>
+        </div>
+        <h2 class="card-title">The Most Forgettable Man in the Known Universe</h2>
+        <p class="card-desc">Gerald received a letter from the Cosmic Administration of Existential Records informing him he was being erased from existence. He had complaints. The waiting room had a number system. This is the story of what happened next.</p>
+        <div class="progress-track"><div class="progress-fill" id="prog-5" style="width:0%"></div></div>
+        <div class="card-row">
+          <span class="card-meta">9 Chapters · Complete</span>
+          <span class="card-cta">Read</span>
+        </div>
+      </div>
+    </a>
 
     <a class="card" href="novels/room-482.html" data-genres="slice-of-life found-family">
       <div class="card-thumb">
@@ -484,6 +504,8 @@
   if (p3) p3.style.width = (prog['novels/room-482.html'] || 0) + '%';
   const p4 = document.getElementById('prog-4');
   if (p4) p4.style.width = (prog['novels/the-unmapped.html'] || 0) + '%';
+  const p5 = document.getElementById('prog-5');
+  if (p5) p5.style.width = (prog['novels/the-most-forgettable-man.html'] || 0) + '%';
 </script>
 </body>
 </html>
