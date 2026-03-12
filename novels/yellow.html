@@ -413,7 +413,7 @@
     }
 
     /* ══════════════════════════════════════════
-       CUTSCENE SYSTEM
+       CUTSCENE SYSTEM — REMASTERED
     ══════════════════════════════════════════ */
     .cutscene {
       position: fixed; inset: 0; z-index: 2000;
@@ -423,162 +423,287 @@
     }
     .cutscene.active { display: flex; }
 
-    /* Grain overlay for cinematic texture */
-    .cutscene::before {
-      content: ''; position: absolute; inset: -50%;
-      width: 200%; height: 200%;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-      pointer-events: none; opacity: 0.4; z-index: 0;
-      animation: grain 0.4s steps(1) infinite;
+    /* Rain canvas sits behind everything */
+    #cs-rain-canvas {
+      position: absolute; inset: 0; z-index: 0;
+      opacity: 0; transition: opacity 3s ease;
+      pointer-events: none;
     }
-    @keyframes grain {
-      0%   { transform: translate(0, 0); }
-      25%  { transform: translate(-2%, 1%); }
-      50%  { transform: translate(1%, -1%); }
-      75%  { transform: translate(-1%, 2%); }
-      100% { transform: translate(2%, -2%); }
+    #cs-rain-canvas.visible { opacity: 1; }
+
+    /* Vignette */
+    .cutscene::after {
+      content: ''; position: absolute; inset: 0; z-index: 1;
+      background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,0.65) 100%);
+      pointer-events: none;
     }
 
-    /* Each scene card */
+    /* Each scene */
     .cs-scene {
-      position: absolute; inset: 0;
+      position: absolute; inset: 0; z-index: 2;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 48px 40px;
+      padding: 60px 48px;
       opacity: 0;
-      transition: opacity 1.4s ease;
+      transition: opacity 1.8s ease;
       pointer-events: none;
-      z-index: 1;
     }
     .cs-scene.cs-visible { opacity: 1; pointer-events: auto; }
-    .cs-scene.cs-exit    { opacity: 0; }
+    .cs-scene.cs-exit    { opacity: 0; transition: opacity 1s ease; }
 
-    /* Stone: animated gold circle */
+    /* ── Stone ── */
+    .cs-stone-wrap {
+      display: flex; align-items: center; justify-content: center;
+      width: 80px; height: 80px; position: relative;
+    }
     .cs-stone {
-      width: 18px; height: 18px; border-radius: 50%;
+      width: 20px; height: 20px; border-radius: 50%;
       background: radial-gradient(circle at 38% 35%, #e8c870, #b88830 60%, #7a5818);
-      box-shadow: 0 0 30px rgba(200,160,50,0.25), 0 0 8px rgba(200,160,50,0.15);
-      animation: stonepulse 3s ease-in-out infinite;
-      flex-shrink: 0;
+      box-shadow: 0 0 40px rgba(200,160,50,0.3), 0 0 12px rgba(200,160,50,0.2);
+      animation: stonepulse 3.5s ease-in-out infinite;
+      flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .cs-stone-ring {
+      position: absolute; width: 50px; height: 50px; border-radius: 50%;
+      border: 1px solid rgba(200,160,50,0.1);
+      animation: ringpulse 3.5s ease-in-out infinite;
+    }
+    .cs-stone-ring2 {
+      position: absolute; width: 72px; height: 72px; border-radius: 50%;
+      border: 1px solid rgba(200,160,50,0.05);
+      animation: ringpulse 3.5s ease-in-out infinite 0.5s;
     }
     @keyframes stonepulse {
-      0%, 100% { box-shadow: 0 0 30px rgba(200,160,50,0.25), 0 0 8px rgba(200,160,50,0.15); }
-      50%       { box-shadow: 0 0 55px rgba(200,160,50,0.4),  0 0 18px rgba(200,160,50,0.25); }
+      0%,100% { box-shadow: 0 0 40px rgba(200,160,50,0.3), 0 0 12px rgba(200,160,50,0.2); }
+      50%      { box-shadow: 0 0 70px rgba(200,160,50,0.5), 0 0 28px rgba(200,160,50,0.35); }
     }
-    .cs-stone-lg {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: radial-gradient(circle at 38% 35%, #e8c870, #b88830 60%, #7a5818);
-      box-shadow: 0 0 60px rgba(200,160,50,0.3), 0 0 20px rgba(200,160,50,0.2);
-      animation: stonepulse 3s ease-in-out infinite;
-      flex-shrink: 0;
+    @keyframes ringpulse {
+      0%,100% { opacity: 0.5; transform: scale(1); }
+      50%      { opacity: 0; transform: scale(1.25); }
     }
 
-    /* Typography inside scenes */
+    /* Stone going cold — dims and shrinks */
+    .cs-stone.dying {
+      animation: stonedying 5s ease-in forwards;
+    }
+    @keyframes stonedying {
+      0%   { box-shadow: 0 0 40px rgba(200,160,50,0.3); background: radial-gradient(circle at 38% 35%, #e8c870, #b88830 60%, #7a5818); }
+      50%  { box-shadow: 0 0 15px rgba(120,100,50,0.15); background: radial-gradient(circle at 38% 35%, #b09850, #806020 60%, #504010); }
+      100% { box-shadow: none; background: radial-gradient(circle at 38% 35%, #484038, #2a2018 60%, #181008); width: 14px; height: 14px; }
+    }
+    @keyframes ringfade {
+      0% { opacity: 0.5; } 100% { opacity: 0; }
+    }
+    .cs-stone.dying ~ .cs-stone-ring,
+    .cs-stone.dying ~ .cs-stone-ring2 {
+      animation: ringfade 2s ease forwards;
+    }
+
+    /* ── Typography ── */
     .cs-eyebrow {
-      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.5em;
-      text-transform: uppercase; color: rgba(200,160,80,0.3);
-      margin-bottom: 20px; text-align: center;
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.55em;
+      text-transform: uppercase; color: rgba(200,160,80,0.28);
+      margin-bottom: 22px; text-align: center;
     }
     .cs-title {
       font-family: 'Cormorant Garamond', serif; font-weight: 300;
-      font-size: clamp(72px, 14vw, 130px); line-height: 0.9;
-      color: rgba(230,215,190,0.9); letter-spacing: 0.06em;
+      font-size: clamp(70px, 13vw, 120px); line-height: 0.88;
+      color: rgba(225,210,185,0.88); letter-spacing: 0.06em;
       text-align: center;
     }
-    .cs-subtitle {
-      font-family: 'EB Garamond', serif; font-style: italic;
-      font-size: 18px; color: rgba(200,180,140,0.35);
-      text-align: center; margin-top: 16px; letter-spacing: 0.03em;
-      max-width: 420px; line-height: 1.65;
-    }
     .cs-body {
-      font-family: 'EB Garamond', serif; font-size: clamp(17px, 2.5vw, 21px);
-      font-style: italic; color: rgba(210,195,170,0.7);
-      text-align: center; max-width: 520px; line-height: 1.85;
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: clamp(16px, 2.4vw, 20px);
+      color: rgba(205,190,165,0.68);
+      text-align: center; max-width: 520px; line-height: 1.9;
       letter-spacing: 0.01em;
     }
-    .cs-body strong {
-      font-style: normal; font-weight: 400;
-      color: rgba(230,215,190,0.85);
+    .cs-body strong { font-style: normal; font-weight: 400; color: rgba(228,215,190,0.88); }
+    .cs-body em     { color: rgba(200,160,80,0.7); }
+
+    /* Typewriter text — appears word by word */
+    .cs-type {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: clamp(18px, 2.8vw, 24px);
+      color: rgba(215,200,175,0.78);
+      text-align: center; max-width: 540px; line-height: 1.95;
+      letter-spacing: 0.01em; min-height: 2em;
     }
-    .cs-body em {
-      font-style: italic;
-      color: rgba(200,160,80,0.7);
+    .cs-type .word {
+      display: inline; opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    .cs-type .word.shown { opacity: 1; }
+
+    /* Large singular line */
+    .cs-single {
+      font-family: 'Cormorant Garamond', serif; font-weight: 300;
+      font-size: clamp(22px, 4vw, 38px);
+      color: rgba(218,205,180,0.75); letter-spacing: 0.04em;
+      text-align: center; line-height: 1.4;
+    }
+
+    /* Date stamp */
+    .cs-stamp {
+      font-family: 'Cinzel', serif; font-size: clamp(28px, 5vw, 48px);
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: rgba(200,160,80,0.22); text-align: center;
+      line-height: 1.2;
+    }
+
+    /* Notification — phone screen */
+    .cs-phone {
+      width: clamp(180px, 40vw, 260px);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      padding: 20px 24px;
+      text-align: center;
+    }
+    .cs-phone-label {
+      font-family: 'Cinzel', serif; font-size: 7.5px; letter-spacing: 0.4em;
+      text-transform: uppercase; color: rgba(180,165,140,0.25);
+      display: block; margin-bottom: 14px;
+    }
+    .cs-phone-num {
+      font-family: 'Cormorant Garamond', serif; font-weight: 300;
+      font-size: clamp(38px, 8vw, 64px); color: rgba(210,195,170,0.5);
+      letter-spacing: 0.1em; line-height: 1;
+    }
+    .cs-phone-sub {
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: 13px; color: rgba(180,165,140,0.25);
+      display: block; margin-top: 8px; letter-spacing: 0.04em;
+    }
+
+    /* Memorial card */
+    .cs-memorial {
+      border: 1px solid rgba(200,160,80,0.12);
+      padding: 36px 44px;
+      text-align: center; max-width: 360px;
+      background: rgba(255,255,255,0.015);
+    }
+    .cs-memorial-cross {
+      font-size: 18px; color: rgba(200,160,80,0.2);
+      display: block; margin-bottom: 18px; letter-spacing: 0.3em;
     }
     .cs-name {
       font-family: 'Cormorant Garamond', serif; font-weight: 300;
-      font-size: clamp(28px, 5vw, 44px); color: rgba(225,210,180,0.75);
-      letter-spacing: 0.08em; text-align: center; margin-bottom: 8px;
+      font-size: clamp(26px, 4.5vw, 40px); color: rgba(222,208,182,0.72);
+      letter-spacing: 0.08em; margin-bottom: 6px;
     }
     .cs-dates {
-      font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 0.4em;
-      text-transform: uppercase; color: rgba(200,160,80,0.35);
-      text-align: center;
+      font-family: 'Cinzel', serif; font-size: 9.5px; letter-spacing: 0.4em;
+      text-transform: uppercase; color: rgba(200,160,80,0.3);
+      margin-bottom: 18px; display: block;
     }
-    .cs-rule {
-      width: 40px; height: 1px;
-      background: rgba(200,160,80,0.2);
-      margin: 24px auto;
+    .cs-rule { width: 30px; height: 1px; background: rgba(200,160,80,0.15); margin: 0 auto 18px; }
+    .cs-memorial-body {
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: 14.5px; color: rgba(190,175,150,0.4);
+      line-height: 1.8;
     }
+
+    /* Letter excerpt */
     .cs-letter {
       font-family: 'Cormorant Garamond', serif; font-style: italic;
-      font-size: clamp(16px, 2.2vw, 20px);
-      color: rgba(210,195,170,0.65); text-align: center;
-      max-width: 480px; line-height: 1.9;
+      font-size: clamp(17px, 2.5vw, 22px);
+      color: rgba(210,195,170,0.62); text-align: center;
+      max-width: 500px; line-height: 1.95;
     }
     .cs-letter .cs-sig {
-      display: block; margin-top: 18px;
+      display: block; margin-top: 22px;
       font-family: 'EB Garamond', serif; font-style: normal;
-      font-size: 13px; letter-spacing: 0.2em;
-      color: rgba(200,160,80,0.35);
+      font-size: 12px; letter-spacing: 0.25em;
+      color: rgba(200,160,80,0.3);
     }
-    .cs-gap { height: 20px; flex-shrink: 0; }
-    .cs-gap-sm { height: 10px; flex-shrink: 0; }
 
-    /* Year range */
+    /* Year/time label */
     .cs-year {
       font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.5em;
-      text-transform: uppercase; color: rgba(180,145,70,0.3);
-      text-align: center; margin-top: 10px;
+      text-transform: uppercase; color: rgba(180,145,70,0.28);
+      text-align: center; margin-top: 12px;
     }
 
-    /* Close button — appears on final scene */
+    /* Spacers */
+    .cs-gap    { height: 22px; flex-shrink: 0; }
+    .cs-gap-sm { height: 10px; flex-shrink: 0; }
+    .cs-gap-lg { height: 40px; flex-shrink: 0; }
+
+    /* Porch light — a single warm pixel of light */
+    .cs-porch {
+      display: flex; flex-direction: column; align-items: center; gap: 0;
+    }
+    .cs-porch-light {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #f8d080;
+      box-shadow: 0 0 18px 6px rgba(248,208,100,0.35), 0 0 50px 20px rgba(248,208,100,0.12);
+      animation: porchpulse 4s ease-in-out infinite;
+      margin-bottom: 32px;
+    }
+    @keyframes porchpulse {
+      0%,100% { box-shadow: 0 0 18px 6px rgba(248,208,100,0.35), 0 0 50px 20px rgba(248,208,100,0.12); }
+      50%      { box-shadow: 0 0 24px 8px rgba(248,208,100,0.45), 0 0 70px 28px rgba(248,208,100,0.18); }
+    }
+
+    /* Timeline: Marcus ages */
+    .cs-timeline {
+      display: flex; flex-direction: column; gap: 20px;
+      max-width: 340px; width: 100%;
+    }
+    .cs-timeline-item {
+      display: flex; align-items: baseline; gap: 16px;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .cs-timeline-item.shown { opacity: 1; transform: translateY(0); }
+    .cs-tl-age {
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.3em;
+      text-transform: uppercase; color: rgba(200,160,80,0.3);
+      flex-shrink: 0; width: 60px; text-align: right;
+    }
+    .cs-tl-line {
+      width: 1px; height: 16px; background: rgba(200,160,80,0.12);
+      flex-shrink: 0; margin-top: 4px;
+    }
+    .cs-tl-text {
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: 15px; color: rgba(190,175,150,0.45); line-height: 1.5;
+    }
+
+    /* Progress dots */
+    .cs-progress {
+      position: absolute; bottom: 24px; left: 0; right: 0; z-index: 3;
+      display: flex; justify-content: center; gap: 5px;
+    }
+    .cs-dot {
+      width: 3px; height: 3px; border-radius: 50%;
+      background: rgba(200,160,80,0.12);
+      transition: background 0.5s;
+    }
+    .cs-dot.active { background: rgba(200,160,80,0.45); }
+
+    /* Close / skip */
     .cs-close-wrap {
-      position: absolute; bottom: 48px; left: 0; right: 0;
-      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      position: absolute; bottom: 52px; left: 0; right: 0; z-index: 4;
+      display: flex; justify-content: center;
     }
     .cs-close {
       font-family: 'Cinzel', serif; font-size: 8.5px; letter-spacing: 0.4em;
-      text-transform: uppercase; color: rgba(180,160,120,0.4);
-      background: none; border: 1px solid rgba(180,160,120,0.15);
+      text-transform: uppercase; color: rgba(180,160,120,0.38);
+      background: none; border: 1px solid rgba(180,160,120,0.13);
       padding: 12px 28px; cursor: pointer;
       transition: all 0.3s; display: none;
     }
     .cs-close.visible { display: block; }
-    .cs-close:hover { color: rgba(210,190,150,0.7); border-color: rgba(180,160,120,0.35); }
-
-    /* Progress dots */
-    .cs-progress {
-      position: absolute; bottom: 28px; left: 0; right: 0;
-      display: flex; justify-content: center; gap: 6px;
-      z-index: 2;
-    }
-    .cs-dot {
-      width: 4px; height: 4px; border-radius: 50%;
-      background: rgba(200,160,80,0.15);
-      transition: background 0.4s;
-    }
-    .cs-dot.active { background: rgba(200,160,80,0.5); }
-
-    /* Skip button */
+    .cs-close:hover { color: rgba(210,190,150,0.65); border-color: rgba(180,160,120,0.32); }
     .cs-skip {
-      position: absolute; top: 20px; right: 24px; z-index: 3;
+      position: absolute; top: 18px; right: 22px; z-index: 5;
       font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.3em;
-      text-transform: uppercase; color: rgba(180,160,120,0.25);
-      background: none; border: none; cursor: pointer;
-      transition: color 0.2s;
+      text-transform: uppercase; color: rgba(180,160,120,0.2);
+      background: none; border: none; cursor: pointer; transition: color 0.2s;
     }
-    .cs-skip:hover { color: rgba(180,160,120,0.5); }
+    .cs-skip:hover { color: rgba(180,160,120,0.45); }
 
   </style>
 </head>
@@ -869,143 +994,326 @@
 <!-- ══ CUTSCENE ══ -->
 <div class="cutscene" id="cutscene" role="dialog" aria-label="Ending cutscene">
 
+  <canvas id="cs-rain-canvas"></canvas>
   <button class="cs-skip" id="cs-skip">Skip ↗</button>
 
-  <!-- Scene 1: Stone appears -->
-  <div class="cs-scene" data-dur="3500" id="cs-0">
-    <div class="cs-stone"></div>
+  <!-- 0. Black. Then the stone. -->
+  <div class="cs-scene" data-dur="4000" id="cs-0">
+    <div class="cs-stone-wrap">
+      <div class="cs-stone" id="cs-the-stone"></div>
+      <div class="cs-stone-ring"></div>
+      <div class="cs-stone-ring2"></div>
+    </div>
   </div>
 
-  <!-- Scene 2: It was always yellow -->
-  <div class="cs-scene" data-dur="4000" id="cs-1">
-    <div class="cs-eyebrow">The Shelf · A Novel</div>
-    <div class="cs-body">He wore yellow because he said it was the colour of being brave.</div>
-  </div>
-
-  <!-- Scene 3: Eli, age -->
-  <div class="cs-scene" data-dur="4000" id="cs-2">
-    <div class="cs-body">He was <strong>nineteen years old</strong>.</div>
+  <!-- 1. Age 15. The moment that started everything. -->
+  <div class="cs-scene" data-dur="5500" id="cs-1">
+    <div class="cs-eyebrow">Summer · 2000</div>
     <div class="cs-gap-sm"></div>
-    <div class="cs-body" style="font-size:0.85em; opacity:0.55;">He had been keeping the words for four years.</div>
-  </div>
-
-  <!-- Scene 4: The confession -->
-  <div class="cs-scene" data-dur="4500" id="cs-3">
-    <div class="cs-body" style="color:rgba(200,160,80,0.6); font-size:1.05em;">
-      <em>"I think I'm in love with you."</em>
+    <div class="cs-body" style="max-width:420px;">
+      They were fifteen. Marcus held up a small yellow stone he'd found at the waterline.
     </div>
     <div class="cs-gap"></div>
-    <div class="cs-body" style="font-size:0.8em; opacity:0.4;">Six words. Four years of holding them.</div>
-  </div>
-
-  <!-- Scene 5: The silence -->
-  <div class="cs-scene" data-dur="4000" id="cs-4">
-    <div class="cs-body">His best friend did not call.</div>
-    <div class="cs-gap-sm"></div>
-    <div class="cs-body" style="font-size:0.82em; opacity:0.4; margin-top:8px;">He did not call.<br/>He did not call.<br/>He did not call.</div>
-  </div>
-
-  <!-- Scene 6: The father -->
-  <div class="cs-scene" data-dur="4500" id="cs-5">
-    <div class="cs-body">His father said a word and handed him a bag and gave him until morning.</div>
-    <div class="cs-gap"></div>
-    <div class="cs-body" style="font-size:0.82em; opacity:0.4;">He packed yellow things. He did not look back at the porch light.</div>
-  </div>
-
-  <!-- Scene 7: September -->
-  <div class="cs-scene" data-dur="4000" id="cs-6">
-    <div class="cs-eyebrow">September</div>
-    <div class="cs-body">He went back to the reservoir one last time.</div>
-    <div class="cs-gap"></div>
-    <div class="cs-body" style="font-size:0.82em; opacity:0.45;">He wrote the letter on the flat rock. The pen kept catching on damp paper.</div>
-  </div>
-
-  <!-- Scene 8: The hiding place -->
-  <div class="cs-scene" data-dur="4500" id="cs-7">
-    <div class="cs-body">He left the letter in the crack in the rock's eastern face.</div>
-    <div class="cs-gap-sm"></div>
-    <div class="cs-body" style="font-size:0.82em; opacity:0.4;">Wrapped around a yellow stone.</div>
-    <div class="cs-gap-sm"></div>
-    <div class="cs-body" style="font-size:0.82em; opacity:0.4;">Deep enough that it wouldn't wash loose.</div>
-  </div>
-
-  <!-- Scene 9: He walked home -->
-  <div class="cs-scene" data-dur="5000" id="cs-8">
-    <div class="cs-body" style="opacity:0.7; max-width:440px;">
-      He walked home through the birches and the birches were turning and the light through them was gold —
+    <div class="cs-letter" style="font-size:clamp(15px,2.2vw,19px);">
+      "It's the same colour as your shirt."
     </div>
     <div class="cs-gap"></div>
-    <div class="cs-body" style="font-size:0.85em; opacity:0.35;">and he was done.</div>
+    <div class="cs-body" style="font-size:0.78em; opacity:0.3; max-width:380px;">
+      He handed it back without understanding what he was handing back.
+    </div>
   </div>
 
-  <!-- Scene 10: One year -->
-  <div class="cs-scene" data-dur="3500" id="cs-9">
-    <div class="cs-eyebrow">One year later</div>
-    <div class="cs-body"><strong>Marcus</strong> went back to the reservoir.</div>
+  <!-- 2. Four years of keeping it. -->
+  <div class="cs-scene" data-dur="5000" id="cs-2">
+    <div class="cs-body" style="max-width:460px;">
+      Eli kept the stone for four years.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.82em; opacity:0.42; max-width:400px; line-height:2;">
+      He kept all of it.<br/>
+      Every small careless kind thing Marcus ever said<br/>
+      without knowing he was saying it.
+    </div>
+  </div>
+
+  <!-- 3. The confession — word by word typewriter -->
+  <div class="cs-scene" data-dur="7000" data-type="typewriter" data-words="I think I'm in love with you." id="cs-3">
+    <div class="cs-eyebrow">The Reservoir · June 2003</div>
     <div class="cs-gap-sm"></div>
-    <div class="cs-body" style="font-size:0.82em; opacity:0.4;">He reached into the crack in the rock.</div>
+    <div class="cs-type" id="cs-3-type" style="font-size:clamp(20px,3.5vw,32px); color:rgba(210,185,140,0.72);"></div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.75em; opacity:0; transition: opacity 1s 4s;" id="cs-3-sub">Six words. He had been holding them for four years.</div>
   </div>
 
-  <!-- Scene 11: The letter line -->
+  <!-- 4. What Marcus did. -->
+  <div class="cs-scene" data-dur="5000" id="cs-4">
+    <div class="cs-body" style="max-width:400px;">
+      Marcus went home.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.8em; opacity:0.38; max-width:380px;">
+      He did not call that night.
+    </div>
+  </div>
+
+  <!-- 5. The phone. Days counting. -->
+  <div class="cs-scene" data-dur="7000" data-type="phone-counter" id="cs-5">
+    <div class="cs-eyebrow">June – August · 2003</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-phone">
+      <span class="cs-phone-label">Days without a call</span>
+      <div class="cs-phone-num" id="cs-day-counter">0</div>
+      <span class="cs-phone-sub">from Marcus</span>
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.78em; opacity:0.28; max-width:360px;" id="cs-phone-note"></div>
+  </div>
+
+  <!-- 6. The father. The word. -->
+  <div class="cs-scene" data-dur="6000" id="cs-6">
+    <div class="cs-eyebrow">July · 2003</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="max-width:440px;">
+      His father said a word.
+    </div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="font-size:0.82em; opacity:0.4; max-width:400px;">
+      He handed Eli a bag and said he had until morning.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.75em; opacity:0.28; max-width:380px;">
+      Eli packed his yellow things in the dark. His hands were steady. He was surprised his hands were steady.
+    </div>
+  </div>
+
+  <!-- 7. The porch light. -->
+  <div class="cs-scene" data-dur="7000" id="cs-7">
+    <div class="cs-porch">
+      <div class="cs-body" style="font-size:0.8em; opacity:0.35; margin-bottom:28px;">When he reached the end of the street, he looked back once.</div>
+      <div class="cs-porch-light"></div>
+      <div class="cs-body" style="font-size:0.82em; opacity:0.5; margin-top:28px; max-width:360px;">
+        The porch light was on.
+      </div>
+      <div class="cs-gap-sm"></div>
+      <div class="cs-body" style="font-size:0.75em; opacity:0.25; max-width:380px;">
+        His father did not come out. The light stayed on. It looked like someone had left it on for someone they expected to return.
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. The room above the laundromat. -->
+  <div class="cs-scene" data-dur="6500" id="cs-8">
+    <div class="cs-eyebrow">August · 2003 · Marsh Street</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="max-width:460px;">
+      Room above Teller's Laundromat. Night shifts at the BP on the edge of town.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.8em; opacity:0.38; max-width:420px; line-height:2.1;">
+      The machines came on at 6am.<br/>
+      The first thought he had each morning was Marcus's name.<br/>
+      The second thought was understanding.
+    </div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="font-size:0.72em; opacity:0.22;">The understanding was very little company at 6 in the morning.</div>
+  </div>
+
+  <!-- 9. He. Did. Not. Call. — word by word, very slow -->
+  <div class="cs-scene" data-dur="8000" data-type="typewriter" data-words="He did not call. He did not call. He did not call." data-speed="380" id="cs-9">
+    <div class="cs-type" id="cs-9-type" style="font-size:clamp(14px,2vw,18px); color:rgba(190,170,140,0.45); max-width:400px;"></div>
+  </div>
+
+  <!-- 10. September. The last time. -->
   <div class="cs-scene" data-dur="6000" id="cs-10">
-    <div class="cs-letter">
-      "The stone was always yours.<br/>I'm just returning it."
-      <span class="cs-sig">— Eli</span>
+    <div class="cs-eyebrow">September · 2003</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="max-width:440px;">
+      He went back to the reservoir one last time.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.8em; opacity:0.38; max-width:400px; line-height:2.1;">
+      He wrote the letter on the flat rock.<br/>
+      The pen kept catching on damp paper.<br/>
+      He wrote carefully. He wrote slowly. He stopped several times.
     </div>
   </div>
 
-  <!-- Scene 12: Stone again, larger -->
-  <div class="cs-scene" data-dur="3500" id="cs-11">
-    <div class="cs-stone-lg"></div>
+  <!-- 11. What the letter said. Typewriter. Most devastating line. -->
+  <div class="cs-scene" data-dur="9000" data-type="typewriter" data-words="I kept all of it. Every small thing. I built something out of every small careless kind thing you ever said to me without knowing you were saying it." data-speed="60" id="cs-11">
+    <div class="cs-eyebrow">From the letter</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-type" id="cs-11-type" style="font-size:clamp(14px,2vw,18px); color:rgba(200,180,140,0.6); max-width:500px;"></div>
   </div>
 
-  <!-- Scene 13: Eli's name and dates -->
-  <div class="cs-scene" data-dur="6000" id="cs-12">
-    <div class="cs-name">Eli Marsh</div>
-    <div class="cs-dates">1984 – 2003</div>
-    <div class="cs-rule"></div>
-    <div class="cs-body" style="font-size:0.85em; opacity:0.5; max-width:360px;">
-      He was brave enough to love something<br/>that couldn't love him back the same way.
+  <!-- 12. "Be happy." -->
+  <div class="cs-scene" data-dur="7000" id="cs-12">
+    <div class="cs-letter" style="max-width:460px; font-size:clamp(16px,2.4vw,21px);">
+      "Be happy. I mean that sincerely.<br/>
+      Fall in love with someone who gets to keep you."
+      <span class="cs-sig">— from the letter · September 2003</span>
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.75em; opacity:0.25; max-width:380px;">
+      He used his last summer to write a letter that would make Marcus feel less alone after he was gone.
     </div>
   </div>
 
-  <!-- Scene 14: Marcus carried it -->
-  <div class="cs-scene" data-dur="5000" id="cs-13">
-    <div class="cs-body" style="max-width:460px; opacity:0.75;">
+  <!-- 13. What happened in October. Rain begins here. -->
+  <div class="cs-scene" data-dur="6000" data-rain="true" id="cs-13">
+    <div class="cs-eyebrow">October · 2003</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="max-width:440px;">
+      The BP station. The late shift. A road that was dark and wet.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.8em; opacity:0.32; max-width:400px;">
+      The official account was:
+    </div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-single" style="color:rgba(180,155,120,0.35); font-size:clamp(22px,3.5vw,34px); letter-spacing:0.12em;">
+      accident
+    </div>
+  </div>
+
+  <!-- 14. Marcus and the funeral he didn't go to. Rain. -->
+  <div class="cs-scene" data-dur="7000" data-rain="true" id="cs-14">
+    <div class="cs-body" style="max-width:460px;">
+      Marcus did not go to the funeral.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.8em; opacity:0.38; max-width:440px; line-height:2.1;">
+      He told himself it was because Eli's father had been clear<br/>that certain people were not welcome.
+    </div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="font-size:0.75em; opacity:0.22; max-width:420px;">
+      That was true. But it was not the reason.
+    </div>
+  </div>
+
+  <!-- 15. What Marcus was doing. A year of the wheel. Rain. -->
+  <div class="cs-scene" data-dur="7000" data-rain="true" id="cs-15">
+    <div class="cs-eyebrow">October 2003 – October 2004</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="max-width:460px;">
+      He drove past the reservoir forty-something times in twelve months.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.8em; opacity:0.38; max-width:440px; line-height:2.1;">
+      Each time, he turned the wheel the other way.<br/>
+      Not a conscious choice.<br/>
+      Just the wheel going the direction the rest of him was already going.
+    </div>
+  </div>
+
+  <!-- 16. "I loved him." — the sentence he said inside his head every day. Typewriter. Rain. -->
+  <div class="cs-scene" data-dur="9000" data-type="typewriter" data-words="I loved him. That is the sentence I have not said aloud to anyone and have been saying inside my own head every day for a year." data-speed="65" data-rain="true" id="cs-16">
+    <div class="cs-eyebrow">Marcus · Interior · One Year Later</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-type" id="cs-16-type" style="font-size:clamp(14px,2vw,18px); color:rgba(190,170,140,0.5); max-width:500px;"></div>
+  </div>
+
+  <!-- 17. He finds the letter. Rain. -->
+  <div class="cs-scene" data-dur="6500" data-rain="true" id="cs-17">
+    <div class="cs-eyebrow">November · 2004</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="max-width:460px;">
+      His hands were shaking. He did not realise this until he tried to unfold the paper and could not.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.8em; opacity:0.4; max-width:420px;">
+      He took a breath. He unfolded it. He read it.
+    </div>
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.75em; opacity:0.22; max-width:400px;">
+      Eli had known he would come back. Eli had prepared for it. Eli had thought about what that version of Marcus would need to hear.
+    </div>
+  </div>
+
+  <!-- 18. The forgiveness. Typewriter. Rain. The worst part. -->
+  <div class="cs-scene" data-dur="9000" data-type="typewriter" data-words="Not the absence. The forgiveness. The care that had been taken with the forgiveness. The fact that Eli had used his last summer to write a letter that would make Marcus feel less alone after he was gone." data-speed="55" data-rain="true" id="cs-18">
+    <div class="cs-eyebrow">The thing that broke him open</div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-type" id="cs-18-type" style="font-size:clamp(13px,1.9vw,17px); color:rgba(185,165,130,0.55); max-width:500px;"></div>
+  </div>
+
+  <!-- 19. Marcus says Eli's name. No answer. Rain stops. -->
+  <div class="cs-scene" data-dur="8000" data-rain="false" id="cs-19">
+    <div class="cs-body" style="max-width:460px; opacity:0.72;">
+      He stood on the flat rock and said Eli's name out loud. Just his name. Once. Into the dark.
+    </div>
+    <div class="cs-gap-lg"></div>
+    <div class="cs-body" style="font-size:0.85em; opacity:0.38; letter-spacing:0.08em;">
+      There was no answer.
+    </div>
+    <div class="cs-gap-sm"></div>
+    <div class="cs-body" style="font-size:0.78em; opacity:0.22;">
+      There would not be an answer.
+    </div>
+  </div>
+
+  <!-- 20. Stone goes cold. -->
+  <div class="cs-scene" data-dur="6000" data-stone="die" id="cs-20">
+    <div class="cs-stone-wrap">
+      <div class="cs-stone" id="cs-stone-dying"></div>
+      <div class="cs-stone-ring" id="cs-ring-dying"></div>
+      <div class="cs-stone-ring2" id="cs-ring2-dying"></div>
+    </div>
+  </div>
+
+  <!-- 21. What Marcus carries. -->
+  <div class="cs-scene" data-dur="6000" id="cs-21">
+    <div class="cs-body" style="max-width:460px; opacity:0.68;">
       Marcus kept the stone for the rest of his life.
     </div>
     <div class="cs-gap"></div>
-    <div class="cs-body" style="font-size:0.82em; opacity:0.35;">
+    <div class="cs-body" style="font-size:0.8em; opacity:0.3; max-width:420px;">
       He never told anyone where it came from.
     </div>
-  </div>
-
-  <!-- Scene 15: The weight of it -->
-  <div class="cs-scene" data-dur="5500" id="cs-14">
-    <div class="cs-body" style="opacity:0.65; max-width:480px; line-height:2;">
-      He was twenty years old and afraid<br/>
-      and he has to live the rest of his life<br/>
-      knowing that it mattered.
+    <div class="cs-gap"></div>
+    <div class="cs-body" style="font-size:0.72em; opacity:0.2; max-width:400px;">
+      When people asked what it was, he said it was just a stone he'd found somewhere once.
     </div>
   </div>
 
-  <!-- Scene 16: BIG TITLE -->
-  <div class="cs-scene" data-dur="6000" id="cs-15">
+  <!-- 22. The weight of having chosen. Typewriter. Final devastating line. -->
+  <div class="cs-scene" data-dur="9000" data-type="typewriter" data-words="He was twenty years old and afraid and he has to live the rest of his life knowing that it mattered." data-speed="90" id="cs-22">
+    <div class="cs-type" id="cs-22-type" style="font-size:clamp(16px,2.6vw,22px); color:rgba(195,175,140,0.6); max-width:500px;"></div>
+  </div>
+
+  <!-- 23. Memorial. -->
+  <div class="cs-scene" data-dur="7000" id="cs-23">
+    <div class="cs-memorial">
+      <span class="cs-memorial-cross">†</span>
+      <div class="cs-name">Eli Marsh</div>
+      <span class="cs-dates">1984 – 2003</span>
+      <div class="cs-rule"></div>
+      <div class="cs-memorial-body">
+        He wore yellow because he said<br/>it was the colour of being brave.<br/>
+        <br/>
+        He was very brave.
+      </div>
+    </div>
+  </div>
+
+  <!-- 24. The title. -->
+  <div class="cs-scene" data-dur="7000" id="cs-24">
     <div class="cs-eyebrow">The Shelf · A Novel in Two Voices</div>
     <div class="cs-title">Yellow</div>
-    <div class="cs-year">2003 · A Story with No Way Back</div>
+    <div class="cs-year">A Story with No Way Back · 2003</div>
   </div>
 
-  <!-- Scene 17: Dedication / final -->
-  <div class="cs-scene" data-dur="6000" id="cs-16">
-    <div class="cs-body" style="opacity:0.5; font-size:0.9em;">
+  <!-- 25. Dedication. Close button. -->
+  <div class="cs-scene" data-dur="99999" id="cs-25">
+    <div class="cs-body" style="opacity:0.42; font-size:0.88em; line-height:2.4; max-width:400px;">
       For everyone who kept the stone.<br/>
       For everyone who was twenty years old and afraid.<br/>
+      For everyone who never called.<br/>
       For everyone who came back a year too late.
     </div>
-    <div class="cs-rule"></div>
-    <div class="cs-body" style="font-size:0.78em; opacity:0.3;">Thank you for reading.</div>
-
+    <div class="cs-rule" style="margin:28px auto;"></div>
+    <div class="cs-body" style="font-size:0.72em; opacity:0.2; letter-spacing:0.04em;">
+      Thank you for reading.
+    </div>
     <div class="cs-close-wrap">
       <button class="cs-close" id="cs-close">Return to the library</button>
     </div>
@@ -1203,7 +1511,10 @@
   });
 
 
-  (function() {
+  // ══════════════════════════════════════════════════════════
+  //  CUTSCENE ENGINE — REMASTERED
+  // ══════════════════════════════════════════════════════════
+  (function () {
     const cutscene  = document.getElementById('cutscene');
     const finishBtn = document.getElementById('finish-btn');
     const skipBtn   = document.getElementById('cs-skip');
@@ -1211,32 +1522,169 @@
     const progWrap  = document.getElementById('cs-progress');
     const scenes    = Array.from(document.querySelectorAll('.cs-scene'));
     const TOTAL     = scenes.length;
-
     let currentIdx  = -1;
     let timer       = null;
     let running     = false;
+    let rainActive  = false;
+    let rainAF      = null;
+    let subTimers   = [];
 
-    // Build progress dots
+    // ── Build progress dots ──
     scenes.forEach((_, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'cs-dot';
-      dot.id = 'csdot-' + i;
-      progWrap.appendChild(dot);
+      const d = document.createElement('div');
+      d.className = 'cs-dot'; d.id = 'csdot-' + i;
+      progWrap.appendChild(d);
     });
-
-    function updateDots(idx) {
-      document.querySelectorAll('.cs-dot').forEach((d, i) => {
-        d.classList.toggle('active', i === idx);
-      });
+    function updateDots(i) {
+      document.querySelectorAll('.cs-dot').forEach((d, j) => d.classList.toggle('active', j === i));
     }
 
-    function showScene(idx) {
-      if (idx >= TOTAL) {
-        endCutscene();
-        return;
-      }
+    // ── Rain canvas ──
+    const rainCanvas = document.getElementById('cs-rain-canvas');
+    const rctx = rainCanvas.getContext('2d');
+    let drops = [];
+    function initRain() {
+      rainCanvas.width  = window.innerWidth;
+      rainCanvas.height = window.innerHeight;
+      drops = Array.from({ length: 120 }, () => ({
+        x: Math.random() * rainCanvas.width,
+        y: Math.random() * rainCanvas.height,
+        len: 12 + Math.random() * 22,
+        speed: 1.8 + Math.random() * 2.8,
+        opacity: 0.04 + Math.random() * 0.1,
+      }));
+    }
+    function drawRain() {
+      rctx.clearRect(0, 0, rainCanvas.width, rainCanvas.height);
+      drops.forEach(d => {
+        rctx.beginPath();
+        rctx.moveTo(d.x, d.y);
+        rctx.lineTo(d.x - 1, d.y + d.len);
+        rctx.strokeStyle = `rgba(180,170,150,${d.opacity})`;
+        rctx.lineWidth = 0.7;
+        rctx.stroke();
+        d.y += d.speed;
+        if (d.y > rainCanvas.height + d.len) {
+          d.y = -d.len;
+          d.x = Math.random() * rainCanvas.width;
+        }
+      });
+      if (rainActive) rainAF = requestAnimationFrame(drawRain);
+    }
+    function startRain() {
+      if (rainActive) return;
+      initRain();
+      rainActive = true;
+      rainCanvas.classList.add('visible');
+      drawRain();
+    }
+    function stopRain() {
+      rainActive = false;
+      cancelAnimationFrame(rainAF);
+      rainCanvas.classList.remove('visible');
+    }
+    window.addEventListener('resize', () => { if (rainActive) initRain(); });
 
-      // Fade out current
+    // ── Phone counter ──
+    function runPhoneCounter(el, noteEl) {
+      const milestones = [
+        { day: 7,  note: '' },
+        { day: 14, note: '' },
+        { day: 30, note: 'A month.' },
+        { day: 52, note: '' },
+        { day: 72, note: 'Summer is over.' },
+        { day: 89, note: '' },
+      ];
+      let day = 0;
+      let mi = 0;
+      let speed = 60;
+      function tick() {
+        if (!running) return;
+        day++;
+        el.textContent = day;
+        if (mi < milestones.length && day >= milestones[mi].day) {
+          if (milestones[mi].note && noteEl) {
+            noteEl.textContent = milestones[mi].note;
+            noteEl.style.opacity = '0.28';
+          }
+          speed = Math.max(18, speed - 4);
+          mi++;
+        }
+        if (day < 89) {
+          const t = setTimeout(tick, speed);
+          subTimers.push(t);
+        }
+      }
+      const t = setTimeout(tick, 400);
+      subTimers.push(t);
+    }
+
+    // ── Typewriter ──
+    function runTypewriter(containerEl, text, speed) {
+      const words = text.split(/(\s+)/);
+      containerEl.innerHTML = words.map((w, i) =>
+        /\s+/.test(w)
+          ? w
+          : `<span class="word" id="tw-word-${i}">${w}</span>`
+      ).join('');
+      const wordEls = containerEl.querySelectorAll('.word');
+      let i = 0;
+      function next() {
+        if (!running || i >= wordEls.length) return;
+        wordEls[i].classList.add('shown');
+        i++;
+        const t = setTimeout(next, speed + Math.random() * 30);
+        subTimers.push(t);
+      }
+      const t = setTimeout(next, 600);
+      subTimers.push(t);
+    }
+
+    // ── Stone death trigger ──
+    function killStone() {
+      const s = document.getElementById('cs-stone-dying');
+      if (s) {
+        s.style.animation = 'none';
+        s.style.transition = 'all 5s ease';
+        s.style.boxShadow = 'none';
+        s.style.background = 'radial-gradient(circle at 38% 35%, #484038, #2a2018 60%, #181008)';
+        s.style.width = '13px';
+        s.style.height = '13px';
+      }
+      const r = document.getElementById('cs-ring-dying');
+      const r2 = document.getElementById('cs-ring2-dying');
+      if (r)  { r.style.transition  = 'opacity 2s ease'; r.style.opacity  = '0'; }
+      if (r2) { r2.style.transition = 'opacity 2s ease'; r2.style.opacity = '0'; }
+    }
+
+    // ── Sub-scene reveals ──
+    function triggerSubReveals(scene) {
+      // cs-3: fade in subtitle after typewriter
+      if (scene.id === 'cs-3') {
+        const sub = document.getElementById('cs-3-sub');
+        if (sub) { sub.style.opacity = '0'; const t = setTimeout(() => { sub.style.opacity = '0.28'; }, 4500); subTimers.push(t); }
+      }
+      // cs-20: stone dying
+      if (scene.id === 'cs-20') {
+        const t = setTimeout(killStone, 800);
+        subTimers.push(t);
+      }
+      // Last scene: show close button
+      if (scene.id === 'cs-25') {
+        const t = setTimeout(() => { if (closeBtn) closeBtn.classList.add('visible'); }, 2800);
+        subTimers.push(t);
+      }
+    }
+
+    // ── Show scene ──
+    function showScene(idx) {
+      if (idx >= TOTAL) { endCutscene(); return; }
+
+      // Clear pending sub-timers from previous scene
+      subTimers.forEach(clearTimeout);
+      subTimers = [];
+
+      // Fade out previous
       if (currentIdx >= 0 && scenes[currentIdx]) {
         scenes[currentIdx].classList.remove('cs-visible');
         scenes[currentIdx].classList.add('cs-exit');
@@ -1244,83 +1692,87 @@
 
       const prev = currentIdx;
       currentIdx = idx;
+      const delay = prev < 0 ? 0 : 800;
 
-      // Small delay for fade-out before new scene fades in
       setTimeout(() => {
-        if (prev >= 0 && scenes[prev]) {
-          scenes[prev].classList.remove('cs-exit');
-        }
+        if (prev >= 0 && scenes[prev]) scenes[prev].classList.remove('cs-exit');
+
         const s = scenes[currentIdx];
         s.classList.add('cs-visible');
         updateDots(currentIdx);
 
-        // Show close button on last scene
-        if (currentIdx === TOTAL - 1) {
-          setTimeout(() => {
-            const cb = document.getElementById('cs-close');
-            if (cb) cb.classList.add('visible');
-          }, 2000);
+        // Rain control
+        if (s.dataset.rain === 'true')  startRain();
+        if (s.dataset.rain === 'false') stopRain();
+
+        // Typewriter
+        if (s.dataset.type === 'typewriter') {
+          const typeEl = s.querySelector('.cs-type');
+          const words  = s.dataset.words || '';
+          const speed  = parseInt(s.dataset.speed) || 80;
+          if (typeEl) runTypewriter(typeEl, words, speed);
         }
 
-        // Auto-advance
-        const dur = parseInt(s.dataset.dur) || 4000;
+        // Phone counter
+        if (s.dataset.type === 'phone-counter') {
+          const numEl  = document.getElementById('cs-day-counter');
+          const noteEl = document.getElementById('cs-phone-note');
+          if (numEl) runPhoneCounter(numEl, noteEl);
+        }
+
+        // Sub-scene special effects
+        triggerSubReveals(s);
+
+        // Auto-advance (skip the last scene — user must close)
+        const dur = parseInt(s.dataset.dur) || 5000;
         if (currentIdx < TOTAL - 1) {
           clearTimeout(timer);
           timer = setTimeout(() => showScene(currentIdx + 1), dur);
         }
-      }, currentIdx === 0 ? 0 : 700);
+      }, delay);
     }
 
     function startCutscene() {
-      currentIdx  = -1;
-      running     = true;
+      currentIdx = -1;
+      running    = true;
       document.body.style.overflow = 'hidden';
       cutscene.classList.add('active');
-      // Start from first scene after brief black-in
       setTimeout(() => showScene(0), 400);
     }
 
     function endCutscene() {
       clearTimeout(timer);
+      subTimers.forEach(clearTimeout);
+      subTimers = [];
+      stopRain();
       running = false;
-      // Fade out the whole cutscene
-      cutscene.style.transition = 'opacity 1.5s ease';
-      cutscene.style.opacity = '0';
+      cutscene.style.transition = 'opacity 1.8s ease';
+      cutscene.style.opacity    = '0';
       setTimeout(() => {
         cutscene.classList.remove('active');
-        cutscene.style.opacity = '';
+        cutscene.style.opacity    = '';
         cutscene.style.transition = '';
         document.body.style.overflow = '';
-        // Reset scenes
-        scenes.forEach(s => {
-          s.classList.remove('cs-visible', 'cs-exit');
-        });
-        const cb = document.getElementById('cs-close');
-        if (cb) cb.classList.remove('visible');
+        scenes.forEach(s => s.classList.remove('cs-visible', 'cs-exit'));
+        if (closeBtn) closeBtn.classList.remove('visible');
         currentIdx = -1;
-      }, 1500);
+      }, 1800);
     }
 
     finishBtn.addEventListener('click', startCutscene);
-
     skipBtn.addEventListener('click', endCutscene);
+    closeBtn.addEventListener('click', () => { clearTimeout(timer); endCutscene(); });
 
-    closeBtn.addEventListener('click', () => {
-      clearTimeout(timer);
-      endCutscene();
-    });
-
-    // Keyboard: right arrow / space to advance, Escape to skip
     document.addEventListener('keydown', e => {
       if (!running) return;
       if (e.key === 'Escape') { endCutscene(); return; }
-      if (e.key === ' ' || e.key === 'ArrowRight') {
+      if ((e.key === ' ' || e.key === 'ArrowRight') && currentIdx < TOTAL - 1) {
         clearTimeout(timer);
         showScene(currentIdx + 1);
       }
     });
-
   })();
+
 </script>
 </body>
 </html>
