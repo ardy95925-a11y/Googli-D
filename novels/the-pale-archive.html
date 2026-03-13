@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>The Pale Archive — The Shelf</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&family=Inconsolata:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ════════════════════════════════════════
+       THEME — Cool slate/teal vs the warm browns of other novels
+    ════════════════════════════════════════ */
+    [data-theme="light"] {
+      --bg:          #f0f2f4;
+      --surface:     #e4e8ec;
+      --ink:         #141820;
+      --prose-ink:   #1e2430;
+      --muted:       #6e7a88;
+      --rule:        #d0d6de;
+      --accent:      #2e6678;
+      --accent-soft: rgba(46,102,120,0.08);
+      --tag-bg:      #dde3e9;
+      --nav-bg:      rgba(240,242,244,0.95);
+      --hero-bg:     #060c10;
+      --hero-ink:    #d8e4e8;
+      --arch-bg:     #e8ecf0;
+      --arch-border: #c4ccd4;
+      --redact:      #1e2430;
+      --letter-bg:   #eaecee;
+      --letter-border: #c0c8d0;
+    }
+
+    [data-theme="dark"] {
+      --bg:          #080c10;
+      --surface:     #0e1418;
+      --ink:         #d8e4e8;
+      --prose-ink:   #c4d0d8;
+      --muted:       #566474;
+      --rule:        #141e26;
+      --accent:      #4e98ae;
+      --accent-soft: rgba(78,152,174,0.08);
+      --tag-bg:      #0e1820;
+      --nav-bg:      rgba(8,12,16,0.96);
+      --hero-bg:     #020608;
+      --hero-ink:    #d8e4e8;
+      --arch-bg:     #0c1418;
+      --arch-border: #1a2430;
+      --redact:      #d8e4e8;
+      --letter-bg:   #0a1218;
+      --letter-border: #1a2834;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: 'EB Garamond', Georgia, serif;
+      -webkit-font-smoothing: antialiased;
+      transition: background 0.3s, color 0.3s;
+      min-height: 100vh;
+    }
+
+    /* ── Reading progress bar ── */
+    .reading-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 2px; background: transparent; pointer-events: none;
+    }
+    .reading-bar-fill {
+      height: 100%; width: 0; background: var(--accent);
+      transition: width 0.1s linear;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed; top: 2px; left: 0; right: 0; z-index: 100;
+      height: 52px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 28px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .nav-left { display: flex; align-items: center; gap: 20px; }
+
+    .nav-back {
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--muted); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav-back:hover { color: var(--ink); }
+    .nav-back::before { content: '← '; font-family: Georgia, serif; font-size: 11px; letter-spacing: 0; }
+
+    .nav-title {
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--muted);
+    }
+
+    .nav-center {
+      display: flex; gap: 0;
+    }
+    .nav-ch-link {
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--muted);
+      text-decoration: none; padding: 6px 12px;
+      border-radius: 4px; transition: color 0.15s, background 0.15s;
+    }
+    .nav-ch-link:hover, .nav-ch-link.active { color: var(--accent); background: var(--accent-soft); }
+
+    .icon-btn {
+      width: 34px; height: 34px; border: none; background: none;
+      border-radius: 7px; cursor: pointer; color: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, color 0.15s;
+    }
+    .icon-btn:hover { background: var(--surface); color: var(--ink); }
+    .icon-btn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── Settings drawer ── */
+    .overlay {
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.3); opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .overlay.open { opacity: 1; pointer-events: all; }
+
+    .settings-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
+      width: 280px; background: var(--bg); border-left: 1px solid var(--rule);
+      transform: translateX(100%);
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), background 0.3s, border-color 0.3s;
+      overflow-y: auto;
+    }
+    .settings-drawer.open { transform: translateX(0); }
+
+    .drawer-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px; border-bottom: 1px solid var(--rule);
+    }
+    .drawer-label {
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .drawer-body { padding: 28px 20px; display: flex; flex-direction: column; gap: 28px; }
+    .setting-row > span {
+      font-family: 'Cinzel', serif; font-size: 9px; letter-spacing: 0.28em;
+      text-transform: uppercase; color: var(--muted);
+      display: block; margin-bottom: 14px;
+    }
+    .theme-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .theme-opt {
+      border: 1px solid var(--rule); border-radius: 8px; padding: 12px 10px 10px;
+      cursor: pointer; background: var(--surface);
+      display: flex; flex-direction: column; gap: 8px; transition: border-color 0.15s;
+    }
+    .theme-opt:hover { border-color: var(--muted); }
+    .theme-opt.active { border-color: var(--accent); }
+    .swatch { width: 100%; height: 32px; border-radius: 4px; border: 1px solid var(--rule); }
+    .swatch.light { background: #f0f2f4; }
+    .swatch.dark  { background: #080c10; }
+    .theme-opt span {
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted); text-align: center;
+    }
+    .font-row { display: flex; align-items: center; gap: 10px; }
+    .font-btn {
+      width: 34px; height: 34px; border: 1px solid var(--rule);
+      background: var(--surface); border-radius: 6px; cursor: pointer;
+      color: var(--muted); font-family: 'Cinzel', serif; font-size: 11px;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .font-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .font-size-label {
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted); flex: 1; text-align: center;
+    }
+
+    /* ══════════════════════════════════════════
+       HERO — Different from other novels:
+       Full-bleed dark panel, centered, ruled
+    ══════════════════════════════════════════ */
+    .hero {
+      background: var(--hero-bg);
+      padding: 130px 40px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle grid texture */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(78,152,174,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(78,152,174,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    .hero-tag {
+      font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 0.25em;
+      color: rgba(78,152,174,0.5); text-transform: uppercase;
+      display: block; margin-bottom: 36px;
+    }
+
+    /* Accession number above title — archival feel */
+    .hero-accession {
+      font-family: 'Inconsolata', monospace; font-size: 11px; letter-spacing: 0.3em;
+      color: rgba(78,152,174,0.3); display: block; margin-bottom: 16px;
+    }
+
+    /* Thin rule before title */
+    .hero-rule {
+      width: 40px; height: 1px;
+      background: rgba(78,152,174,0.25);
+      margin: 0 auto 32px;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif; font-weight: 300;
+      font-size: clamp(52px, 10vw, 90px); line-height: 0.92;
+      color: var(--hero-ink); letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .hero-title em { font-style: italic; text-transform: none; letter-spacing: 0.04em; }
+
+    .hero-sub {
+      font-family: 'EB Garamond', serif; font-style: italic;
+      font-size: 18px; color: rgba(216,228,232,0.38);
+      margin-top: 28px; letter-spacing: 0.04em; line-height: 1.65;
+    }
+
+    .hero-meta {
+      display: flex; align-items: center; justify-content: center;
+      gap: 24px; margin-top: 40px;
+    }
+    .hero-meta-item {
+      font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.35em;
+      text-transform: uppercase; color: rgba(78,152,174,0.4);
+    }
+    .hero-meta-sep {
+      width: 1px; height: 12px; background: rgba(78,152,174,0.15);
+    }
+
+    /* ══════════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════════ */
+    .layout {
+      max-width: 1060px; margin: 0 auto;
+      display: grid; grid-template-columns: 200px 1fr;
+      gap: 0; padding: 0 28px;
+    }
+
+    /* ── TOC sidebar ── Different: uses monospace labels, numbered list style ── */
+    .toc {
+      padding: 60px 32px 60px 0;
+      border-right: 1px solid var(--rule);
+      position: sticky; top: 54px;
+      align-self: start; max-height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+
+    .toc-label {
+      font-family: 'Inconsolata', monospace; font-size: 9px; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--muted);
+      display: block; margin-bottom: 20px;
+    }
+
+    .toc a {
+      display: block; text-decoration: none;
+      font-family: 'Inconsolata', monospace; font-size: 11px; letter-spacing: 0.04em;
+      color: var(--muted); padding: 6px 0;
+      border-left: 2px solid transparent;
+      padding-left: 10px; margin-left: -10px;
+      transition: color 0.2s, border-color 0.2s;
+      line-height: 1.5;
+    }
+    .toc a:hover { color: var(--ink); }
+    .toc a.active { color: var(--accent); border-left-color: var(--accent); }
+    .toc-num { color: rgba(78,152,174,0.35); margin-right: 6px; }
+
+    /* ── Reading column ── */
+    .reading {
+      padding: 60px 0 100px 52px;
+    }
+
+    /* ══════════════════════════════════════════
+       CHAPTER — Different visual style:
+       Large faded chapter number behind title,
+       no ornate hero, clean and cold
+    ══════════════════════════════════════════ */
+    .chapter { margin-bottom: 80px; }
+    .chapter + .chapter {
+      border-top: 1px solid var(--rule);
+      padding-top: 72px;
+    }
+
+    .ch-head {
+      margin-bottom: 52px;
+      position: relative;
+    }
+
+    /* Large faded number behind title — key visual difference */
+    .ch-num-bg {
+      font-family: 'Cormorant Garamond', serif; font-weight: 600;
+      font-size: clamp(90px, 15vw, 140px); line-height: 0.8;
+      color: var(--accent); opacity: 0.06;
+      position: absolute; top: -16px; left: -8px;
+      pointer-events: none; user-select: none;
+      letter-spacing: -0.02em;
+    }
+
+    .ch-num {
+      font-family: 'Inconsolata', monospace; font-size: 9px; letter-spacing: 0.4em;
+      text-transform: uppercase; color: rgba(78,152,174,0.45);
+      display: block; margin-bottom: 16px;
+    }
+
+    .ch-title {
+      font-family: 'Cormorant Garamond', serif; font-weight: 300;
+      font-size: clamp(28px, 5vw, 44px); line-height: 1.05;
+      color: var(--ink); letter-spacing: 0.02em;
+    }
+
+    .ch-location {
+      font-family: 'Inconsolata', monospace; font-size: 10px;
+      letter-spacing: 0.2em; color: rgba(78,152,174,0.4);
+      display: block; margin-top: 16px;
+    }
+
+    .ch-rule {
+      width: 100%; height: 1px; background: var(--rule);
+      margin-top: 24px;
+    }
+
+    /* ══════════════════════════════════════════
+       PROSE
+    ══════════════════════════════════════════ */
+    .prose {
+      --fs: 19px;
+      font-size: var(--fs);
+      line-height: 1.82;
+      color: var(--prose-ink);
+      max-width: 62ch;
+    }
+
+    .prose p {
+      margin-bottom: 1.5em;
+      text-indent: 2em;
+    }
+    .prose p:first-of-type { text-indent: 0; }
+
+    /* ── Archival note box — unique to this novel ── */
+    .arch-note {
+      display: block;
+      font-family: 'Inconsolata', monospace; font-size: 13px; line-height: 1.75;
+      color: rgba(78,152,174,0.7);
+      background: var(--arch-bg);
+      border: 1px solid var(--arch-border);
+      border-left: 3px solid rgba(78,152,174,0.35);
+      padding: 16px 20px; margin: 2em 0;
+      letter-spacing: 0.02em;
+    }
+    .arch-note .an-label {
+      font-size: 8.5px; letter-spacing: 0.4em; text-transform: uppercase;
+      color: rgba(78,152,174,0.4); display: block; margin-bottom: 8px;
+    }
+
+    /* ── Location/date stamp ── */
+    .loc-stamp {
+      display: block;
+      font-family: 'Inconsolata', monospace; font-size: 10px;
+      letter-spacing: 0.25em; text-transform: uppercase;
+      color: rgba(78,152,174,0.35);
+      margin: 2.5em 0 1.2em;
+    }
+
+    /* ── Found letter text ── */
+    .letter-text {
+      display: block;
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: 1.02em; line-height: 1.92; color: var(--prose-ink);
+      background: var(--letter-bg);
+      border: 1px solid var(--letter-border);
+      padding: 28px 32px;
+      margin: 2.2em 0;
+      position: relative;
+    }
+    .letter-text::before {
+      content: '"';
+      font-family: 'Cormorant Garamond', serif; font-style: normal; font-weight: 300;
+      font-size: 72px; line-height: 1;
+      color: rgba(78,152,174,0.12);
+      position: absolute; top: -8px; left: 12px;
+    }
+    .letter-date {
+      display: block;
+      font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 0.2em;
+      color: rgba(78,152,174,0.4); margin-bottom: 18px;
+      font-style: normal;
+    }
+    .letter-from {
+      display: block; font-style: normal;
+      font-family: 'Inconsolata', monospace; font-size: 10px; letter-spacing: 0.2em;
+      color: rgba(78,152,174,0.4); margin-top: 18px;
+    }
+
+    /* ── Redacted text ── */
+    .redacted {
+      background: var(--redact); color: transparent;
+      user-select: none; border-radius: 1px;
+      cursor: default; display: inline;
+      padding: 0 2px;
+    }
+
+    /* ── Internal thought ── */
+    .thought {
+      display: block; font-style: italic;
+      color: rgba(78,152,174,0.6);
+      border-left: 2px solid rgba(78,152,174,0.2);
+      padding-left: 20px; margin: 1.8em 0;
+      font-size: 0.96em; line-height: 1.88;
+    }
+
+    /* ── Scene break ── */
+    .scene-break {
+      text-align: center; margin: 2.5em 0;
+      color: rgba(78,152,174,0.25);
+      font-family: 'Inconsolata', monospace; font-size: 11px;
+      letter-spacing: 0.5em; user-select: none;
+    }
+
+    /* ── Chapter end ── */
+    .ch-end {
+      font-family: 'Inconsolata', monospace; font-size: 9px;
+      letter-spacing: 0.5em; text-transform: uppercase;
+      color: rgba(78,152,174,0.3);
+      text-align: left; margin-top: 52px; padding-top: 24px;
+      border-top: 1px solid var(--rule);
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center; padding: 28px;
+      font-family: 'Cinzel', serif; font-size: 8px;
+      letter-spacing: 0.25em; text-transform: uppercase;
+      color: var(--rule); border-top: 1px solid var(--rule);
+    }
+
+    @media (max-width: 760px) {
+      nav { padding: 0 18px; }
+      .nav-center { display: none; }
+      .hero { padding: 100px 24px 64px; }
+      .layout { grid-template-columns: 1fr; padding: 0 20px; gap: 0; }
+      .toc { display: none; }
+      .reading { padding: 40px 0 80px; }
+      .settings-drawer { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="reading-bar"><div class="reading-bar-fill" id="reading-bar-fill"></div></div>
+
+<nav>
+  <div class="nav-left">
+    <a class="nav-back" href="../index.html">The Shelf</a>
+    <span class="nav-title">The Pale Archive</span>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       NAV CHAPTERS — Add a new link here for each new chapter:
+       <a class="nav-ch-link" href="#chN">Ch. N</a>
+  ═══════════════════════════════════════════════════════════ -->
+  <nav class="nav-center" aria-label="Chapters">
+    <a class="nav-ch-link" href="#ch1">Ch. 1</a>
+    <!-- <a class="nav-ch-link" href="#ch2">Ch. 2</a> -->
+    <!-- <a class="nav-ch-link" href="#ch3">Ch. 3</a> -->
+  </nav>
+
+  <button class="icon-btn" id="settings-btn" aria-label="Settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</nav>
+
+<div class="overlay" id="overlay"></div>
+<div class="settings-drawer" id="drawer">
+  <div class="drawer-head">
+    <span class="drawer-label">Settings</span>
+    <button class="icon-btn" id="drawer-close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body">
+    <div class="setting-row">
+      <span>Theme</span>
+      <div class="theme-grid">
+        <div class="theme-opt" data-t="light"><div class="swatch light"></div><span>Light</span></div>
+        <div class="theme-opt active" data-t="dark"><div class="swatch dark"></div><span>Dark</span></div>
+      </div>
+    </div>
+    <div class="setting-row">
+      <span>Text Size</span>
+      <div class="font-row">
+        <button class="font-btn" id="font-down">A−</button>
+        <span class="font-size-label" id="font-label">Medium</span>
+        <button class="font-btn" id="font-up">A+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<header class="hero">
+  <span class="hero-accession">ACC. VLD / 1963-M / 001</span>
+  <div class="hero-rule"></div>
+  <h1 class="hero-title">The Pale<br><em>Archive</em></h1>
+  <p class="hero-sub">Some records survive because someone hid them.<br>Some survive because no one knew to look.</p>
+  <div class="hero-meta">
+    <span class="hero-meta-item">Mystery</span>
+    <div class="hero-meta-sep"></div>
+    <span class="hero-meta-item">Literary Fiction</span>
+    <div class="hero-meta-sep"></div>
+    <span class="hero-meta-item">Ongoing</span>
+  </div>
+</header>
+
+<!-- ═══════════════════════ MAIN LAYOUT ═══════════════════════ -->
+<div class="layout">
+
+  <!-- ════════════════════════════════════════════════════════
+       TOC — Add a new <a> for each chapter you write:
+       <a href="#chN"><span class="toc-num">N.</span> Chapter Title</a>
+  ═══════════════════════════════════════════════════════════ -->
+  <aside class="toc" aria-label="Table of Contents">
+    <span class="toc-label">Contents</span>
+    <a href="#ch1" class="active"><span class="toc-num">01.</span> Accession</a>
+    <!-- Paste new chapters below this line: -->
+    <!-- <a href="#ch2"><span class="toc-num">02.</span> Chapter Title</a> -->
+    <!-- <a href="#ch3"><span class="toc-num">03.</span> Chapter Title</a> -->
+  </aside>
+
+  <article>
+    <div class="reading">
+
+      <!-- ════════════════════════════════════════════════════════
+           HOW TO ADD A NEW CHAPTER:
+
+           1. Copy everything between ═══ CHAPTER TEMPLATE ═══
+              and ═══ END CHAPTER TEMPLATE ═══ below.
+           2. Paste it after the last .chapter closing tag.
+           3. Change id="ch1" to id="ch2", id="ch3", etc.
+           4. Update ch-num-bg, ch-num, ch-title, ch-location.
+           5. Add a <a href="#chN"> in the .toc and .nav-center.
+           6. Update the chapter count in the index card.
+
+           That's it. The reading progress, TOC highlight, and
+           font size all work automatically.
+      ════════════════════════════════════════════════════════ -->
+
+      <!-- ═══ CHAPTER TEMPLATE ═══ -->
+      <section class="chapter" id="ch1">
+        <div class="ch-head">
+          <div class="ch-num-bg" aria-hidden="true">I</div>
+          <span class="ch-num">Chapter I</span>
+          <h2 class="ch-title">Accession</h2>
+          <span class="ch-location">Municipal Archive of Veld · Sub-Basement 3 · October</span>
+          <div class="ch-rule"></div>
+        </div>
+
+        <div class="prose" id="prose-ch1">
+
+          <span class="arch-note">
+            <span class="an-label">Catalog Record</span>
+            Accession No. VLD/1963-M/001 · Status: UNRESOLVED<br>
+            Donor: Unknown · Receipt date: Unrecorded<br>
+            Contents: Correspondence, handwritten, 847 items · Date range: Nov 1958 – Mar 1994<br>
+            Location: Sub-Basement 3, Aisle 14, Bay 7 · Condition: Good<br>
+            Note: Box does not appear in primary or secondary catalogs. Origin of accessioning unknown.
+          </span>
+
+          <p>Nadia Voss discovered the discrepancy on a Tuesday, which was the sort of day on which she preferred to make no discoveries at all. Tuesdays at the Municipal Archive of Veld were cataloging days, and cataloging required a particular quality of attention — not the bright, ready attention of a Monday, not the loose, tired attention of a Thursday — but something precise and economical, a kind of vision she had trained herself toward over eleven years of practice. She sat at her desk with the morning light coming through the narrow basement windows and typed accession numbers into the system one at a time, and she did not expect anything to go wrong.</p>
+
+          <p>The number that wasn't there was VLD/1963-M/001.</p>
+
+          <p>This was, on its face, unremarkable. Numbers go missing from archives. Records are misfiled, merged, truncated by software migrations. The archive had undergone three such migrations since Nadia had been employed there, and each one had introduced its own small inventory of ghosts — records that existed in the system without a corresponding box, boxes that existed in the stacks without a corresponding record. She had resolved most of them. Some she had simply noted and moved on. The archive, like all large collections of human documentation, contained more absence than presence, and she had learned not to be unsettled by this.</p>
+
+          <p>What unsettled her about VLD/1963-M/001 was the opposite problem: it appeared in no catalog at all, primary or secondary, digital or paper — and yet it had surfaced in a routine cross-reference search she was running against a donor list from 1963. The number appeared once, in a handwritten marginal note in the donor register, in a hand she did not recognise. No entry. No date. Just the number, in ink that was slightly bluer than the surrounding text, as if written at a different time with a different pen.</p>
+
+          <p>Nadia looked at it for a long moment. Then she looked up the physical location the number implied: Sub-Basement 3, Aisle 14, Bay 7. Sub-Basement 3 was the oldest section of the archive, predating the current building by several decades, accessible via a narrow staircase at the back of the reading room that was unlocked on request and otherwise discouraged. She had been down there four times in eleven years. Most of what it held was scheduled for transfer to the regional facility in Lant — boxed, labeled, waiting — and the rest was deaccessioned material that had not yet been physically removed.</p>
+
+          <p>There was nothing assigned to Aisle 14, Bay 7. She checked twice.</p>
+
+          <span class="thought">It was probably mold. A water-damaged box that someone had shunted to an empty bay and failed to log. She had found three of those in the past year alone. She would go down, find whatever was there, and either integrate it properly or flag it for disposal. It would take twenty minutes. It was exactly the sort of small housekeeping task that made up most of what an archivist actually did, the unglamorous majority of the work that people who did not work in archives never thought about.</span>
+
+          <p>She told herself this on the way down the stairs.</p>
+
+          <p>She was carrying a notepad, a pencil, a pair of cotton gloves, and the small flashlight she kept in her desk drawer because the Sub-Basement 3 lighting was operated by motion sensors that had been calibrated for a larger person than herself and frequently did not notice her at all. The staircase smelled of cold stone and something older — the particular smell of paper that has been undisturbed for a very long time, a smell she had never been able to describe accurately to anyone who hadn't spent years in an archive, though she had tried. It was not quite dust. It was more like the air remembering something.</p>
+
+          <span class="scene-break">· · ·</span>
+
+          <span class="loc-stamp">Sub-Basement 3 · Aisle 14 · Bay 7</span>
+
+          <p>Aisle 14 was in the northwest corner of the sub-basement, beyond a run of transfer boxes and a shelf of water-stained photograph albums that she had never gotten to the bottom of. The motion sensors picked her up intermittently — a section of fluorescent lighting would flicker on ahead of her and then go dark again before she reached it, as if the building was uncertain whether she was worth illuminating. She used the flashlight.</p>
+
+          <p>Bay 7 was at the end of the aisle, floor level. It was not empty.</p>
+
+          <p>The box was medium-sized, the standard archival grey, and it appeared to be in good condition — no visible water damage, no visible mold, the lid sitting evenly. It was tied shut with archival tape that had yellowed but not degraded. On the front, in very neat, very small block capitals written in a hand she had never seen before:</p>
+
+          <span class="arch-note">
+            <span class="an-label">Box Label — Transcription</span>
+            VLD / 1963-M / 001<br>
+            CORRESPONDENCE: KESS, M. — ROHE, E.<br>
+            NOV. 1958 — [DATE UNCLEAR]<br>
+            RESTRICTED: DO NOT CATALOG
+          </span>
+
+          <p>Nadia read the label twice. She crouched down and looked at the box without touching it. The tape was old — the adhesive had partially separated from the cardboard, and there was a faint watermark along the upper edge from some past humidity event, contained and resolved. Someone had packed this carefully. Someone had known what they were doing.</p>
+
+          <p>She stood up. She looked back down the aisle. The motion sensor had given up on her entirely and the aisle was dark except for the flashlight beam. She could hear, distantly, the ventilation system cycling on the floor above. Everything else was quiet in the particular way of very old places that have been holding their breath for a long time.</p>
+
+          <span class="thought">Do not catalog. That was unusual. That was not, in her eleven years of professional experience, a normal instruction to find on an archival box. The instruction implied both that the box had been deliberately placed and that the person who placed it had anticipated someone like her — someone who would find it and want to catalog it — and had wanted to prevent this. Which meant the person who placed it had wanted it to be both kept and hidden. That was a contradiction. Archives did not deal in contradictions. Archives dealt in access, preservation, findability. If you wanted something hidden, you burned it.</span>
+
+          <p>Nadia put on her cotton gloves. She lifted the box and carried it to the reading table at the end of the aisle.</p>
+
+          <p>It was heavier than expected.</p>
+
+          <scene-break></scene-break>
+
+          <p>She cut the archival tape with her thumbnail — slowly, carefully, along the existing separation line — and lifted the lid.</p>
+
+          <p>Letters. A great many letters, arranged upright in the box in hanging folder sleeves, each sleeve labeled in the same neat block hand as the box itself. The labels gave date ranges: <em>Nov–Dec 1958. Jan–Jun 1959. Jul–Dec 1959.</em> She counted the folders without touching them. Sixteen folders. She lifted the first one out and placed it on the table.</p>
+
+          <p>The letters inside were handwritten on a variety of paper — some formal stationery, some ordinary writing paper, some pages that appeared to have been torn from notebooks. The handwriting alternated between two distinct styles: one small and precise and forward-leaning, the other larger and more deliberate, as if the writer had been taught to write carefully and had spent a lifetime trying to undo that carefulness and not quite succeeded. The smaller hand, she would come to understand, was Marta Kess. The larger was Emil Rohe.</p>
+
+          <p>She read the first letter standing at the table with her flashlight propped against the box and the fluorescent tube overhead blinking uncertainly.</p>
+
+          <span class="letter-text">
+            <span class="letter-date">14 November 1958 · From M. Kess · To E. Rohe</span>
+            Emil —<br><br>
+            I am writing this at the desk by the window in the office on Velder Straat, which is where I always write, which means I am writing to tell you that I have found something I should not have found and I do not know what to do with it and I do not know who else to tell.<br><br>
+            You will say: tell no one. You always say this. And you are usually right, which I find irritating in proportion to how often it is true.<br><br>
+            But this is different, I think. This is different in the way that things are different when they have names attached to them and the names are names you recognise.<br><br>
+            I can't write the names here. I think you understand why I can't write the names here.<br><br>
+            Come on Thursday if you can. I'll have the coffeepot on. If you can't come on Thursday, come the Thursday after, and I will still have the coffeepot on and I will still need to tell you this.<br><br>
+            Marta
+            <span class="letter-from">— M. Kess · Received: 16 Nov. 1958 (postmark: Veld Central)</span>
+          </span>
+
+          <p>Nadia set the letter down. She looked at the folder of correspondence in front of her — <em>Nov–Dec 1958</em> — and then at the remaining fifteen folders still upright in the box. She did a rough calculation. If each folder held the same density of letters as the first, there were somewhere between seven hundred and nine hundred letters in total. That was not a correspondence. That was a record. That was someone, deliberately and over a very long period, documenting something.</p>
+
+          <p>She went to the last folder.</p>
+
+          <p>It was labeled, in the same neat hand: <em>Jan–Mar 1994.</em></p>
+
+          <p>She stood at the table for a moment with the folder in her hands and did not open it. She was running a simple calculation, and the calculation kept producing a result she needed to check. She went back to the box and looked at the second folder: <em>Jan–Jun 1959.</em> And the third: <em>Jul–Dec 1959.</em> And on through the years — 1960, 1961.</p>
+
+          <p>The folder for early 1962 was thin. Only a few letters. The folder after it — <em>Jul–Dec 1962</em> — was also thin. She had expected it to be empty.</p>
+
+          <p>She was aware of her own breathing. The ventilation system upstairs cycled again. She opened the last folder.</p>
+
+          <span class="letter-text">
+            <span class="letter-date">3 March 1994 · From E. Rohe · To M. Kess</span>
+            Marta —<br><br>
+            Thirty-two years and I still write your address from memory. I wonder sometimes whether the street is still there or whether they've changed it. Things change faster now than they used to. Or perhaps I'm just older and more aware of the changing.<br><br>
+            I want you to know that I kept everything. All of it, in the order you insisted on. I was stubborn about the order at first — you remember, I thought it was unnecessary — but I understand now that you were right. You were usually right about the things that mattered. I've thought about burning it many times. I thought about it seriously in 1971, and again in 1979, when things got complicated in the way that things got complicated in 1979. But I never did. I think you knew I wouldn't.<br><br>
+            There is a woman I pass in the market on Saturdays who has your way of standing. I have mentioned her before. I still don't stop to look.<br><br>
+            I'm going to do what we said. When I'm done I'll put everything where we agreed.<br><br>
+            Emil
+            <span class="letter-from">— E. Rohe · [No postmark. Hand-delivered?]</span>
+          </span>
+
+          <p>Nadia put the folder down on the table. She sat down on the floor of the archive because there were no chairs and her legs had gone uncertain under her in a way she did not entirely understand yet. The flashlight was still propped against the box, casting a thin beam across the table. Everything outside the beam was dark.</p>
+
+          <p>She had read enough accession records in her career to know the names Marta Kess and Emil Rohe. They were not famous names, not names anyone outside the archive would know. They appeared in the municipal records because all deaths in Veld were recorded in the municipal records, and both Marta Kess and Emil Rohe had died in this city on the fourteenth of February, 1962. A tram accident in the Velderstraat tunnel. Both confirmed dead at the scene. The coroner's report was in the archive two floors above her head, in the 1962 civil records, in a folder she could find in under four minutes.</p>
+
+          <p>The letter on the table in front of her was dated March 1994. Written in a hand she was already beginning to recognise. Addressed to a woman who, according to every official record this archive held, had been dead for thirty-two years.</p>
+
+          <span class="thought">She sat on the floor of Sub-Basement 3 and thought, in the very precise and orderly way she thought about most things: someone is wrong. The records are wrong, or the letters are wrong. One of these two things had happened, and her job — not just professionally, not just as an archivist, but in the more private sense of job that she had always understood as her actual function in the world — was to determine which.</span>
+
+          <p>She stayed on the floor for about four minutes. Then she stood up, replaced the last folder carefully in the box, closed the lid, and picked it up. She carried it back up the stairs, through the reading room, and set it on the table beside her desk. It was 11:42 in the morning. She had a cataloging meeting at two o'clock.</p>
+
+          <p>She made tea. She sat down. She looked at the box for a long time.</p>
+
+          <p>Then she opened it again and took one letter — not the first, not the last, but one from the middle, from 1967, chosen without reading the date or the contents — and folded it carefully and put it in the inner pocket of her coat.</p>
+
+          <p>She did not know why she did this. She would think about it later, on the tram home, with the letter against her chest and the city going dark outside the windows, and she would not be able to explain it except to say that it had felt necessary in the way that very few things in her life had felt necessary, and she had learned, over years of careful and considered living, to pay attention when necessity arrived without explanation.</p>
+
+          <p>The tram went down Velderstraat. The tunnel came and went. The city opened back up on the other side, lights in the apartment windows, people standing at the stop in coats that were not quite warm enough for October. Everything exactly as it should be. Nothing visibly wrong with the world.</p>
+
+          <p>She did not take the letter out of her pocket.</p>
+
+          <p>Not yet.</p>
+
+          <div class="ch-end">— End of Chapter I —</div>
+
+        </div>
+      </section>
+      <!-- ═══ END CHAPTER TEMPLATE ═══ -->
+
+      <!--
+      ════════════════════════════════════════════════════
+      CHAPTER 2 GOES HERE — Copy the block above,
+      change id="ch1" → id="ch2", update ch-num-bg to "II",
+      ch-num to "Chapter II", write your prose, done.
+      ════════════════════════════════════════════════════
+      -->
+
+    </div>
+  </article>
+</div>
+
+<footer>The Shelf &nbsp;·&nbsp; A Private Library &nbsp;·&nbsp; The Pale Archive</footer>
+
+<script>
+  // ── Theme ──
+  const root = document.documentElement;
+  const applyTheme = t => {
+    root.setAttribute('data-theme', t);
+    localStorage.setItem('shelf-theme', t);
+    document.querySelectorAll('.theme-opt').forEach(o => o.classList.toggle('active', o.dataset.t === t));
+  };
+  applyTheme(localStorage.getItem('shelf-theme') || 'dark');
+  document.querySelectorAll('.theme-opt').forEach(o => o.addEventListener('click', () => applyTheme(o.dataset.t)));
+
+  // ── Drawer ──
+  const drawer  = document.getElementById('drawer');
+  const overlay = document.getElementById('overlay');
+  const openD  = () => { drawer.classList.add('open');  overlay.classList.add('open'); };
+  const closeD = () => { drawer.classList.remove('open'); overlay.classList.remove('open'); };
+  document.getElementById('settings-btn').addEventListener('click', openD);
+  document.getElementById('drawer-close').addEventListener('click', closeD);
+  overlay.addEventListener('click', closeD);
+
+  // ── Font size ──
+  const allProse = document.querySelectorAll('.prose');
+  let fs = parseFloat(localStorage.getItem('shelf-fontsize') || '19');
+  const labels = { 16: 'Small', 17.5: 'Small', 19: 'Medium', 20.5: 'Medium', 22: 'Large', 23.5: 'Large', 25: 'X-Large' };
+  const setFs = v => {
+    fs = Math.min(25, Math.max(16, v));
+    allProse.forEach(p => p.style.setProperty('--fs', fs + 'px'));
+    localStorage.setItem('shelf-fontsize', fs);
+    const lbl = document.getElementById('font-label');
+    if (lbl) lbl.textContent = labels[Math.round(fs * 2) / 2] || 'Medium';
+  };
+  setFs(fs);
+  document.getElementById('font-up').addEventListener('click', () => setFs(fs + 1.5));
+  document.getElementById('font-down').addEventListener('click', () => setFs(fs - 1.5));
+
+  // ── Reading progress ──
+  const fill = document.getElementById('reading-bar-fill');
+  window.addEventListener('scroll', () => {
+    const pct = Math.min(100, (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100);
+    fill.style.width = pct + '%';
+    const prog = JSON.parse(localStorage.getItem('shelf-progress') || '{}');
+    prog['novels/the-pale-archive.html'] = Math.round(pct);
+    localStorage.setItem('shelf-progress', JSON.stringify(prog));
+  }, { passive: true });
+
+  // ── TOC highlight ──
+  const chapters = document.querySelectorAll('.chapter');
+  const tocLinks = document.querySelectorAll('.toc a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        tocLinks.forEach(l => l.classList.remove('active'));
+        const a = document.querySelector(`.toc a[href="#${e.target.id}"]`);
+        if (a) a.classList.add('active');
+        // Nav links
+        document.querySelectorAll('.nav-ch-link').forEach(l => l.classList.remove('active'));
+        const nb = document.querySelector(`.nav-ch-link[href="#${e.target.id}"]`);
+        if (nb) nb.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -70% 0px' });
+  chapters.forEach(c => obs.observe(c));
+</script>
+</body>
+</html>
