@@ -87,7 +87,8 @@
       transition: background 0.3s, border-color 0.3s;
     }
 
-    .nav-left { display: flex; align-items: center; gap: 20px; }
+    .nav-left  { display: flex; align-items: center; gap: 20px; flex: 1; }
+    .nav-right { display: flex; align-items: center; justify-content: flex-end; flex: 1; }
 
     .nav-back {
       font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.3em;
@@ -103,7 +104,7 @@
     }
 
     .nav-center {
-      display: flex; gap: 0;
+      display: flex; gap: 0; flex-shrink: 0;
     }
     .nav-ch-link {
       font-family: 'Cinzel', serif; font-size: 8px; letter-spacing: 0.22em;
@@ -744,15 +745,17 @@
        NAV CHAPTERS — Add a new link here for each new chapter:
        <a class="nav-ch-link" href="#chN">Ch. N</a>
   ═══════════════════════════════════════════════════════════ -->
-  <nav class="nav-center" aria-label="Chapters">
+  <div class="nav-center" aria-label="Chapters">
     <a class="nav-ch-link" href="#ch1">Ch. 1</a>
     <a class="nav-ch-link" href="#ch2">Ch. 2</a>
     <!-- <a class="nav-ch-link" href="#ch3">Ch. 3</a> -->
-  </nav>
+  </div>
 
-  <button class="icon-btn" id="settings-btn" aria-label="Settings">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-  </button>
+  <div class="nav-right">
+    <button class="icon-btn" id="settings-btn" aria-label="Settings">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
 </nav>
 
 <div class="overlay" id="overlay"></div>
